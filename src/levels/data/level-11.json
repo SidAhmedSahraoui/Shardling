@@ -1,0 +1,30 @@
+{
+  "id": "level-11",
+  "name": "Springstone Rise",
+  "world": 3,
+  "bounds": { "x": 0, "y": -10, "z": -10, "w": 40, "h": 30, "d": 20 },
+  "killY": -8,
+  "spawn": { "x": 3, "y": 1.5, "z": 0 },
+  "portal": { "x": 35, "y": 9, "z": 3, "rotY": 90 },
+  "shards": [
+    { "x": 8, "y": 2, "z": 0 },
+    { "x": 17.5, "y": 6.6, "z": 0 },
+    { "x": 32.5, "y": 10, "z": 3 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -3, "w": 14, "h": 1, "d": 6 },
+    { "type": "box", "x": 14, "y": 0, "z": -3, "w": 7, "h": 3.5, "d": 6 },
+    { "type": "box", "x": 21, "y": 0, "z": -3, "w": 2.5, "h": 1, "d": 8 },
+    { "type": "box", "x": 23.5, "y": 0, "z": 0, "w": 7, "h": 4.5, "d": 6 },
+    { "type": "box", "x": 30.5, "y": 0, "z": 0, "w": 8, "h": 9, "d": 6 }
+  ],
+  "hazards": [
+    { "type": "bouncer", "x": 12, "y": 1, "z": 0 },
+    { "type": "bouncer", "x": 17.5, "y": 3.5, "z": 0 },
+    { "type": "bouncer", "x": 20.3, "y": 3.5, "z": 1.5 },
+    { "type": "bouncer", "x": 22.2, "y": 1, "z": 1 },
+    { "type": "bouncer", "x": 28.5, "y": 4.5, "z": 3 }
+  ],
+  "intendedPath": "Roll through the first shard to the springstone at the dead-end wall and let it toss you onto the ledge, bounce straight up from the middle pad to pluck the floating shard, take the edge pad across the canyon onto the high shelf (the pad in the canyon floor bounces you back up if you fall short), then bounce from the last pad and double-jump at the apex to crest the summit wall and roll to the gate.",
+  "hints": ["bounce", "apex", "double-jump"]
+}

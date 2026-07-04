@@ -1,0 +1,49 @@
+{
+  "id": "level-12",
+  "name": "Spiralstone",
+  "world": 3,
+  "bounds": { "x": 4, "y": -8, "z": -11, "w": 26, "h": 30, "d": 22 },
+  "killY": -6,
+  "spawn": { "x": 15, "y": 1.5, "z": 7 },
+  "portal": { "x": 15, "y": 15, "z": 0, "rotY": 0 },
+  "shards": [
+    { "x": 15, "y": 2, "z": 5 },
+    { "x": 15.5, "y": 8.6, "z": -3.3 },
+    { "x": 19, "y": 14.2, "z": 3.7 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 7, "y": 0, "z": -8, "w": 16, "h": 1, "d": 16 },
+    { "type": "box", "x": 13, "y": 1, "z": -2, "w": 4, "h": 13, "d": 4 },
+    { "type": "box", "x": 12.5, "y": 14, "z": -2.5, "w": 5, "h": 1, "d": 5 },
+    { "type": "box", "x": 15.4, "y": 2.4, "z": 2, "w": 4.6, "h": 1, "d": 2.4 },
+    { "type": "box", "x": 17, "y": 5.2, "z": -4, "w": 2.4, "h": 1, "d": 5.6 },
+    { "type": "box", "x": 13.5, "y": 6.6, "z": -4.6, "w": 4, "h": 1, "d": 2.6 },
+    {
+      "type": "box",
+      "x": 10.6,
+      "y": 9.4,
+      "z": -3.8,
+      "w": 2.4,
+      "h": 1,
+      "d": 5.4
+    },
+    { "type": "box", "x": 15.4, "y": 10.4, "z": 2, "w": 3.2, "h": 1, "d": 1.2 },
+    {
+      "type": "box",
+      "x": 17.8,
+      "y": 10.4,
+      "z": 2.5,
+      "w": 2.4,
+      "h": 1,
+      "d": 2.4
+    }
+  ],
+  "hazards": [
+    { "type": "bouncer", "x": 14.2, "y": 1, "z": 3.2 },
+    { "type": "blade", "x": 18.2, "y": 6.6, "z": -1.4, "r": 1.2 },
+    { "type": "blade", "x": 11.8, "y": 10.8, "z": -0.9, "r": 1.2 },
+    { "type": "bouncer", "x": 19, "y": 11.4, "z": 3.7 }
+  ],
+  "intendedPath": "Ride the courtyard bouncer up onto the low south balcony, then climb the spire counterclockwise: double-jump the corner onto the east balcony and hop its grinder, step around to the north shelf, double-jump past the second grinder onto the west balcony, leap the gap onto the narrow south cornice, and let the top bouncer's double-chain carry you past the last shard to the summit gate.",
+  "hints": ["spiral-climb", "camera", "bounce-chain"]
+}

@@ -1,0 +1,66 @@
+{
+  "id": "level-16",
+  "name": "Pulseway",
+  "world": 4,
+  "bounds": { "x": 0, "y": -10, "z": -6, "w": 38, "h": 30, "d": 30 },
+  "killY": -8,
+  "spawn": { "x": 3, "y": 1.5, "z": 0 },
+  "portal": { "x": 31, "y": 6, "z": 21.5, "rotY": 0 },
+  "shards": [
+    { "x": 7, "y": 2, "z": 0 },
+    { "x": 30.5, "y": 6.4, "z": 0.6 },
+    { "x": 31, "y": 7, "z": 20 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -4, "w": 12, "h": 1, "d": 8 },
+    { "type": "box", "x": 29, "y": 0, "z": -2, "w": 3, "h": 2.5, "d": 4 },
+    { "type": "box", "x": 27, "y": 5, "z": 15, "w": 8, "h": 1, "d": 8 }
+  ],
+  "hazards": [
+    { "type": "bouncer", "x": 11.2, "y": 1, "z": 0 },
+    {
+      "type": "platform",
+      "x": 14,
+      "y": 3.5,
+      "z": -1.5,
+      "w": 3,
+      "d": 3,
+      "path": [
+        { "x": 14, "y": 3.5, "z": -1.5 },
+        { "x": 24, "y": 3.5, "z": -1.5 }
+      ],
+      "speed": 3,
+      "mode": "pingpong"
+    },
+    { "type": "bouncer", "x": 30.5, "y": 2.5, "z": 0 },
+    {
+      "type": "platform",
+      "x": 29,
+      "y": 5,
+      "z": 1.5,
+      "w": 3,
+      "d": 3,
+      "path": [
+        { "x": 29, "y": 5, "z": 1.5 },
+        { "x": 29, "y": 5, "z": 11.5 }
+      ],
+      "speed": 3,
+      "mode": "pingpong"
+    },
+    {
+      "type": "blade",
+      "x": 28,
+      "y": 6.4,
+      "z": 18,
+      "r": 1.2,
+      "path": [
+        { "x": 28, "y": 6.4, "z": 18 },
+        { "x": 34, "y": 6.4, "z": 18 }
+      ],
+      "speed": 2.5,
+      "mode": "pingpong"
+    }
+  ],
+  "intendedPath": "Grab the first shard on the run-up, then hit the spring pad just as the low ferry glides home and drop onto its deck; ride it out, hop down to the waystone, and spring again as the high ferry swings in — the arc threads the second shard — then ride to the terrace, land on the near apron, cross the sweeping blade's lane at whichever edge it has just left, and take the last shard at the gate.",
+  "hints": ["bounce", "ferries", "timing"]
+}

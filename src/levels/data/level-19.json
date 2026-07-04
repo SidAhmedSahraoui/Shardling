@@ -1,0 +1,83 @@
+{
+  "id": "level-19",
+  "name": "Marrow Run",
+  "world": 4,
+  "bounds": { "x": 0, "y": -10, "z": -6, "w": 72, "h": 30, "d": 44 },
+  "killY": -8,
+  "spawn": { "x": 3, "y": 1.5, "z": 0 },
+  "portal": { "x": 66.5, "y": 6, "z": 30.5, "rotY": 90 },
+  "shards": [
+    { "x": 7, "y": 2, "z": 0 },
+    { "x": 38.75, "y": 7.3, "z": 3.6 },
+    { "x": 51.5, "y": 7, "z": 30.75 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -4, "w": 10, "h": 1, "d": 8 },
+    { "type": "box", "x": 12, "y": 0.5, "z": -1, "w": 1, "h": 1, "d": 2 },
+    { "type": "box", "x": 15, "y": 1, "z": 0, "w": 1, "h": 1, "d": 2 },
+    { "type": "box", "x": 18, "y": 1.5, "z": -1.5, "w": 1, "h": 1, "d": 2 },
+    { "type": "box", "x": 21, "y": 1.5, "z": -2, "w": 4, "h": 1, "d": 4 },
+    {
+      "type": "box",
+      "x": 37.5,
+      "y": 0,
+      "z": -1.5,
+      "w": 2.5,
+      "h": 2.5,
+      "d": 3
+    },
+    { "type": "box", "x": 36.5, "y": 5.5, "z": 3.5, "w": 4, "h": 1, "d": 4 },
+    { "type": "box", "x": 35.5, "y": 5, "z": 28.5, "w": 6, "h": 1, "d": 6 },
+    { "type": "box", "x": 43.5, "y": 5, "z": 30, "w": 14, "h": 1, "d": 1.5 },
+    { "type": "box", "x": 63.5, "y": 5, "z": 27.5, "w": 6, "h": 1, "d": 6 }
+  ],
+  "hazards": [
+    { "type": "crumble", "x": 27, "y": 2, "z": -0.75, "w": 1.5, "d": 1.5 },
+    { "type": "crumble", "x": 30.5, "y": 2, "z": 0.25, "w": 1.5, "d": 1.5 },
+    { "type": "crumble", "x": 34, "y": 2, "z": -0.75, "w": 1.5, "d": 1.5 },
+    { "type": "bouncer", "x": 38.75, "y": 2.5, "z": 0 },
+    {
+      "type": "platform",
+      "x": 37,
+      "y": 6,
+      "z": 9.5,
+      "w": 3,
+      "d": 3,
+      "path": [
+        { "x": 37, "y": 6, "z": 9.5 },
+        { "x": 37, "y": 6, "z": 23.5 }
+      ],
+      "speed": 4,
+      "mode": "pingpong"
+    },
+    {
+      "type": "blade",
+      "x": 48.5,
+      "y": 6.4,
+      "z": 27,
+      "r": 1.2,
+      "path": [
+        { "x": 48.5, "y": 6.4, "z": 27 },
+        { "x": 48.5, "y": 6.4, "z": 34.5 }
+      ],
+      "speed": 3,
+      "mode": "pingpong"
+    },
+    {
+      "type": "blade",
+      "x": 54.5,
+      "y": 6.4,
+      "z": 34.5,
+      "r": 1.2,
+      "path": [
+        { "x": 54.5, "y": 6.4, "z": 34.5 },
+        { "x": 54.5, "y": 6.4, "z": 27 }
+      ],
+      "speed": 3,
+      "mode": "pingpong"
+    },
+    { "type": "crumble", "x": 59.5, "y": 5.5, "z": 29.75, "w": 2, "d": 2 }
+  ],
+  "intendedPath": "Hop the three splinter perches to the waystone, sprint the three crumbling stones in one breath onto the pillar, take the spring pad and double-jump at the apex — through the shard — onto the high shelf; leap aboard the fast ferry the moment it swings home, ride it out and jump off onto the dock, then take the twin sweeping blades one window at a time — cross, hold the gap stone for the next opening, cross again — and run the cracked slab to the gate without stopping.",
+  "hints": ["commit", "blade-windows", "fast-ferry"]
+}

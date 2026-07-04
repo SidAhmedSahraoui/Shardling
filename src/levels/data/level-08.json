@@ -1,0 +1,42 @@
+{
+  "id": "level-08",
+  "name": "Grindstone Row",
+  "world": 2,
+  "bounds": { "x": 0, "y": -10, "z": -10, "w": 66, "h": 30, "d": 20 },
+  "killY": -8,
+  "spawn": { "x": 3, "y": 1.5, "z": 0 },
+  "portal": { "x": 60, "y": 1, "z": 0, "rotY": 90 },
+  "shards": [
+    { "x": 8, "y": 2, "z": 0 },
+    { "x": 22, "y": 2, "z": 0 },
+    { "x": 57.5, "y": 2, "z": 2.5 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -4, "w": 14, "h": 1, "d": 8 },
+    { "type": "box", "x": 16, "y": 0, "z": -4, "w": 12, "h": 1, "d": 8 },
+    { "type": "box", "x": 30.5, "y": 0, "z": -4, "w": 12, "h": 1, "d": 8 },
+    { "type": "box", "x": 49.5, "y": 0, "z": -4, "w": 14, "h": 1, "d": 8 }
+  ],
+  "hazards": [
+    { "type": "blade", "x": 12, "y": 1.4, "z": 0, "r": 1.2 },
+    { "type": "blade", "x": 20, "y": 1.4, "z": -2.2, "r": 1.2 },
+    { "type": "blade", "x": 24, "y": 1.4, "z": 2.2, "r": 1.2 },
+    {
+      "type": "blade",
+      "x": 36.5,
+      "y": 1.4,
+      "z": -3,
+      "r": 1.2,
+      "path": [
+        { "x": 36.5, "y": 1.4, "z": -3 },
+        { "x": 36.5, "y": 1.4, "z": 3 }
+      ],
+      "speed": 3,
+      "mode": "pingpong"
+    },
+    { "type": "crumble", "x": 44.5, "y": 0.5, "z": -1.5, "w": 3, "d": 3 },
+    { "type": "blade", "x": 55, "y": 1.4, "z": -1, "r": 1.5 }
+  ],
+  "intendedPath": "Pass the first grindstone on either side, weave left then right through the staggered pair, watch the patrolling blade sweep and cross behind it, hop the cracked slab over the gap, then take the right-hand lane past the last blade to the gate.",
+  "hints": ["blades", "timing", "lanes"]
+}

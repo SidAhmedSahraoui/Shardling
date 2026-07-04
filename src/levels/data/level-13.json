@@ -1,0 +1,80 @@
+{
+  "id": "level-13",
+  "name": "Pendulum Court",
+  "world": 3,
+  "bounds": { "x": 0, "y": -10, "z": -10, "w": 72, "h": 30, "d": 20 },
+  "killY": -8,
+  "spawn": { "x": 3, "y": 1.5, "z": 0 },
+  "portal": { "x": 66.5, "y": 5.5, "z": 0, "rotY": 90 },
+  "shards": [
+    { "x": 6, "y": 2, "z": 0 },
+    { "x": 18.5, "y": 2, "z": 3.2 },
+    { "x": 60.3, "y": 4, "z": 2.9 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -4, "w": 9, "h": 1, "d": 8 },
+    { "type": "box", "x": 11.5, "y": 0, "z": -4, "w": 14, "h": 1, "d": 8 },
+    { "type": "box", "x": 28.5, "y": 0, "z": -3, "w": 14, "h": 1, "d": 6 },
+    { "type": "box", "x": 45.5, "y": 0, "z": -3.5, "w": 11, "h": 1, "d": 7 },
+    { "type": "box", "x": 56.5, "y": 0, "z": 0.5, "w": 5, "h": 3, "d": 3 },
+    { "type": "box", "x": 61.5, "y": 0, "z": -3.5, "w": 9, "h": 5.5, "d": 7 }
+  ],
+  "hazards": [
+    {
+      "type": "blade",
+      "x": 18.5,
+      "y": 1.4,
+      "z": -2.2,
+      "r": 1.2,
+      "path": [
+        { "x": 18.5, "y": 1.4, "z": -2.2 },
+        { "x": 18.5, "y": 1.4, "z": 2.2 }
+      ],
+      "speed": 1.4,
+      "mode": "pingpong"
+    },
+    {
+      "type": "blade",
+      "x": 32.5,
+      "y": 1.4,
+      "z": -2,
+      "r": 1,
+      "path": [
+        { "x": 32.5, "y": 1.4, "z": -2 },
+        { "x": 32.5, "y": 1.4, "z": 2 }
+      ],
+      "speed": 2,
+      "mode": "pingpong"
+    },
+    {
+      "type": "blade",
+      "x": 38.5,
+      "y": 1.4,
+      "z": 2,
+      "r": 1,
+      "path": [
+        { "x": 38.5, "y": 1.4, "z": 2 },
+        { "x": 38.5, "y": 1.4, "z": -2 }
+      ],
+      "speed": 2,
+      "mode": "pingpong"
+    },
+    { "type": "bouncer", "x": 54.8, "y": 1, "z": 2 },
+    {
+      "type": "blade",
+      "x": 59.5,
+      "y": 5.8,
+      "z": 2.9,
+      "r": 1,
+      "path": [
+        { "x": 59.5, "y": 5.8, "z": 2.9 },
+        { "x": 59.5, "y": 3.4, "z": 2.9 }
+      ],
+      "speed": 1.6,
+      "mode": "pingpong"
+    },
+    { "type": "bouncer", "x": 60.5, "y": 3, "z": 1.2 }
+  ],
+  "intendedPath": "Take the first shard, hop the gap and study the wide sweeper's rhythm, then cross along the far rail behind it for the second shard; weave rail-to-rail past the staggered pair of sweepers, bounce from the court up to the guarded ledge, dart under the bobbing saw for the last shard while it rides high, then run onto the second pad and bounce over the wall to the gate.",
+  "hints": ["sweep", "timing", "bounce"]
+}

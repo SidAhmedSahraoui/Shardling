@@ -1,0 +1,61 @@
+{
+  "id": "level-04",
+  "name": "Emberthorns",
+  "world": 1,
+  "bounds": { "x": 0, "y": -12, "z": -10, "w": 58, "h": 32, "d": 20 },
+  "killY": -9,
+  "spawn": { "x": 3, "y": 1.5, "z": 0 },
+  "portal": { "x": 53, "y": 1, "z": 0, "rotY": 90 },
+  "shards": [
+    { "x": 7, "y": 2, "z": 0 },
+    { "x": 40, "y": 3, "z": 0 },
+    { "x": 50, "y": 2, "z": 0 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -4, "w": 20, "h": 1, "d": 8 },
+    { "type": "box", "x": 22, "y": 0, "z": -4, "w": 16, "h": 1, "d": 8 },
+    { "type": "box", "x": 38, "y": -2, "z": -4, "w": 3.5, "h": 1, "d": 8 },
+    { "type": "box", "x": 41.5, "y": 0, "z": -4, "w": 14, "h": 1, "d": 8 }
+  ],
+  "hazards": [
+    {
+      "type": "spikes",
+      "x": 10,
+      "y": 1,
+      "z": -1.5,
+      "w": 3,
+      "d": 3,
+      "face": "up"
+    },
+    {
+      "type": "spikes",
+      "x": 25,
+      "y": 1,
+      "z": -4,
+      "w": 3,
+      "d": 6,
+      "face": "up"
+    },
+    {
+      "type": "spikes",
+      "x": 31,
+      "y": 1,
+      "z": -2,
+      "w": 3,
+      "d": 6,
+      "face": "up"
+    },
+    {
+      "type": "spikes",
+      "x": 38,
+      "y": -1,
+      "z": -4,
+      "w": 3.5,
+      "d": 8,
+      "face": "up"
+    },
+    { "type": "spikes", "x": 46, "y": 1, "z": -4, "w": 2, "d": 6, "face": "up" }
+  ],
+  "intendedPath": "Roll around the first thorn bed on either side, weave the staggered patches right lane then left, build speed and hop the thorn pit — grabbing the shard mid-air — then slip through the narrow right-hand lane to the gate.",
+  "hints": ["spikes", "lanes", "hop"]
+}

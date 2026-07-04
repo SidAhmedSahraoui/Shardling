@@ -1,0 +1,10 @@
+node_modules/
+dist/
+shardling.zip
+coverage/
+.vite/
+*.log
+*.local
+.DS_Store
+.idea/
+.claude/

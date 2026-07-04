@@ -1,0 +1,37 @@
+{
+  "id": "level-06",
+  "name": "Ferrystone",
+  "world": 2,
+  "bounds": { "x": 0, "y": -10, "z": -10, "w": 60, "h": 30, "d": 20 },
+  "killY": -8,
+  "spawn": { "x": 4, "y": 1.5, "z": 0 },
+  "portal": { "x": 57, "y": 1, "z": 0, "rotY": 90 },
+  "shards": [
+    { "x": 10, "y": 2, "z": 0 },
+    { "x": 30, "y": 6, "z": 0 },
+    { "x": 50, "y": 2, "z": 2 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -4, "w": 14, "h": 1, "d": 8 },
+    { "type": "box", "x": 46, "y": 0, "z": -4, "w": 14, "h": 1, "d": 8 }
+  ],
+  "hazards": [
+    {
+      "type": "platform",
+      "x": 16,
+      "y": 3,
+      "z": -1.5,
+      "w": 3,
+      "d": 3,
+      "path": [
+        { "x": 16, "y": 3, "z": -1.5 },
+        { "x": 44, "y": 3, "z": -1.5 }
+      ],
+      "speed": 2.5,
+      "mode": "pingpong"
+    },
+    { "type": "spikes", "x": 48, "y": 1, "z": -1, "w": 4, "d": 2, "face": "up" }
+  ],
+  "intendedPath": "Double-jump aboard the ferry stone when it returns, ride it out over the void and leap at mid-crossing for the high shard, then dismount onto the far island and skirt around the spike bed to the gate.",
+  "hints": ["ride", "timing", "double-jump"]
+}

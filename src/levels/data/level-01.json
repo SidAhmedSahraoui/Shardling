@@ -1,0 +1,32 @@
+{
+  "id": "level-01",
+  "name": "First Light",
+  "world": 1,
+  "bounds": { "x": 0, "y": -10, "z": -10, "w": 60, "h": 30, "d": 20 },
+  "killY": -8,
+  "spawn": { "x": 4, "y": 1.5, "z": 0 },
+  "portal": { "x": 55, "y": 1, "z": 0, "rotY": 90 },
+  "shards": [
+    { "x": 14, "y": 2, "z": 0 },
+    { "x": 28, "y": 5, "z": 2 },
+    { "x": 42, "y": 2, "z": -2 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -3, "w": 20, "h": 1, "d": 6 },
+    { "type": "box", "x": 24, "y": 3, "z": 0, "w": 6, "h": 1, "d": 4 },
+    {
+      "type": "ramp",
+      "x": 20,
+      "y": 0,
+      "z": -1,
+      "w": 4,
+      "h": 3,
+      "d": 3,
+      "dir": "+x"
+    },
+    { "type": "box", "x": 34, "y": 0, "z": -4, "w": 26, "h": 1, "d": 8 }
+  ],
+  "hazards": [],
+  "intendedPath": "Roll right, take the ramp for speed, jump to the high ledge for shard 2, drop, continue to the gate.",
+  "hints": ["move", "camera", "jump"]
+}

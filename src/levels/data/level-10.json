@@ -1,0 +1,58 @@
+{
+  "id": "level-10",
+  "name": "Gearwork Trial",
+  "world": 2,
+  "bounds": { "x": 0, "y": -10, "z": -10, "w": 84, "h": 30, "d": 20 },
+  "killY": -8,
+  "spawn": { "x": 3, "y": 1.5, "z": 0 },
+  "portal": { "x": 79.5, "y": 6.5, "z": 4, "rotY": 90 },
+  "shards": [
+    { "x": 10.5, "y": 1.8, "z": 0 },
+    { "x": 45.5, "y": 5.5, "z": 1.5 },
+    { "x": 71.5, "y": 6.9, "z": 4 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -4, "w": 18, "h": 1, "d": 8 },
+    { "type": "box", "x": 30, "y": 0, "z": -3, "w": 6, "h": 1, "d": 6 },
+    { "type": "box", "x": 55, "y": 3, "z": 0, "w": 8, "h": 1, "d": 8 },
+    { "type": "box", "x": 75, "y": 5.5, "z": 0, "w": 9, "h": 1, "d": 8 }
+  ],
+  "hazards": [
+    { "type": "blade", "x": 8.5, "y": 1.4, "z": -1.8, "r": 1.2 },
+    { "type": "blade", "x": 12.5, "y": 1.4, "z": 1.8, "r": 1.2 },
+    { "type": "blade", "x": 16.5, "y": 1.4, "z": -1.8, "r": 1.2 },
+    { "type": "crumble", "x": 20, "y": 0.5, "z": -1.5, "w": 3, "d": 3 },
+    { "type": "crumble", "x": 25, "y": 0.5, "z": -1.5, "w": 3, "d": 3 },
+    {
+      "type": "platform",
+      "x": 38,
+      "y": 0.5,
+      "z": -1.5,
+      "w": 3,
+      "d": 3,
+      "path": [
+        { "x": 38, "y": 0.5, "z": -1.5 },
+        { "x": 50, "y": 3.5, "z": 1.5 }
+      ],
+      "speed": 3,
+      "mode": "pingpong"
+    },
+    {
+      "type": "blade",
+      "x": 59,
+      "y": 4.4,
+      "z": 1,
+      "r": 1.2,
+      "path": [
+        { "x": 59, "y": 4.4, "z": 1 },
+        { "x": 59, "y": 4.4, "z": 7 }
+      ],
+      "speed": 3,
+      "mode": "pingpong"
+    },
+    { "type": "crumble", "x": 65, "y": 4.5, "z": 2.5, "w": 3, "d": 3 },
+    { "type": "crumble", "x": 70, "y": 5.5, "z": 2.5, "w": 3, "d": 3 }
+  ],
+  "intendedPath": "Slalom the three grindstones and take the first shard in the middle switchback, hop the two cracked slabs without lingering, ride the climbing ferry off the dock and leap at mid-crossing for the high shard, dismount onto the upper isle, slip behind the patrolling blade as it turns at the sweep's end, then charge the crumbling stair in one committed run — the last shard hangs over the second slab — and roll through the gate.",
+  "hints": ["everything", "timing", "commit"]
+}

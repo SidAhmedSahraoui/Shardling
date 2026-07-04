@@ -1,0 +1,106 @@
+export const tuning = {
+  physicsHz: 60,
+  maxFrameSec: 0.25,
+
+  maxDpr: 2,
+
+  gravityY: -32,
+  ballRadius: 0.4,
+  ballMass: 1,
+  moveForce: 30,
+  airControlMult: 0.55,
+  maxSpeedXZ: 8,
+  maxFallSpeed: 22,
+  jumpVelocity: 11,
+  doubleJumpMult: 0.9,
+  jumpCutMult: 0.5,
+  coyoteMs: 100,
+  jumpBufferMs: 120,
+  friction: 0.9,
+  restitution: 0,
+  linearDamping: 0.12,
+  angularDamping: 0.6,
+
+  groundCastRadius: 0.34,
+  groundCastMaxDist: 0.55,
+
+  camPitchDeg: -24,
+  camDistance: 8,
+  camDistanceMin: 6,
+  camDistanceMax: 12,
+  camFov: 55,
+  camFollowLerp: 0.1,
+  camLookAheadMax: 1.2,
+
+  camKeyYawRadPerSec: 2.4,
+  camDragYawRadPerPx: 0.005,
+  camZoomPerWheelDelta: 0.01,
+
+  camOcclusionRadius: 0.25,
+  camOcclusionRecoverLerp: 0.08,
+
+  blobShadowRadius: 0.5,
+  blobShadowMaxHeight: 6,
+  blobShadowOpacity: 0.55,
+  blobShadowMinScale: 0.35,
+
+  eyeTrackLerp: 0.12,
+
+  bladeSpinRevPerSec: 1.5,
+  platformCarryStiffness: 16,
+  bouncerVyMult: 1.35,
+  bouncerRetriggerVy: 6,
+  bouncerCatchVy: -0.5,
+  crumbleShakeSec: 0.35,
+  crumbleCollapseSec: 0.45,
+  crumbleRespawnSec: 2.5,
+
+  tierDprLo: 1,
+  tierDprMid: 1.5,
+  tierDprHi: 2,
+
+  bloomIntensity: 1.0,
+  bloomLuminanceThreshold: 0.22,
+  bloomLuminanceSmoothing: 0.35,
+  vignetteOffset: 0.3,
+  vignetteDarkness: 0.62,
+
+  fogDensity: 0.02,
+  hemiIntensity: 0.8,
+  dirIntensity: 1.4,
+
+  uiFadeMs: 220,
+
+  hitStopMs: 60,
+  deathShakeMs: 150,
+  deathShakeAmplitude: 0.1,
+  deathFadeMs: 250,
+  deathHoldMs: 90,
+
+  sootBurstCount: 18,
+  collectSparkCount: 8,
+  collectPopMs: 220,
+  collectRingMs: 380,
+  shardPulseAmplitude: 0.5,
+  shardPulsePeriodSec: 2.2,
+  portalFlashMs: 120,
+  portalFlashIntensityMult: 3.2,
+  portalSpiralRatePerSec: 9,
+  portalDriftRatePerSec: 1.5,
+  moteCount: 40,
+  moteDriftSpeed: 0.22,
+
+  touchStickRadiusPx: 60,
+  touchStickDeadZonePx: 20,
+  touchJumpSizePx: 80,
+  touchPinchZoomPerPx: 0.02,
+
+  sfxPitchJitter: 0.03,
+
+  defaultVolume: 0.8,
+  defaultCamSensitivity: 1,
+  camSensitivityMin: 0.5,
+  camSensitivityMax: 2,
+};
+
+export type Tuning = typeof tuning;

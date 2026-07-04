@@ -1,0 +1,31 @@
+{
+  "id": "level-07",
+  "name": "The Broken Span",
+  "world": 2,
+  "bounds": { "x": 0, "y": -10, "z": -10, "w": 72, "h": 30, "d": 20 },
+  "killY": -8,
+  "spawn": { "x": 3, "y": 1.5, "z": 0 },
+  "portal": { "x": 66, "y": 5.5, "z": 0, "rotY": 90 },
+  "shards": [
+    { "x": 7, "y": 2, "z": 0 },
+    { "x": 30, "y": 2.5, "z": 0 },
+    { "x": 59, "y": 6.3, "z": 0 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -3, "w": 12, "h": 1, "d": 6 },
+    { "type": "box", "x": 12, "y": -1, "z": -3, "w": 4, "h": 1, "d": 6 },
+    { "type": "box", "x": 16, "y": 0, "z": -3, "w": 8, "h": 1, "d": 6 },
+    { "type": "box", "x": 36, "y": 0, "z": -3, "w": 7, "h": 1, "d": 6 },
+    { "type": "box", "x": 60, "y": 4.5, "z": -3, "w": 10, "h": 1, "d": 6 }
+  ],
+  "hazards": [
+    { "type": "crumble", "x": 12, "y": 0.5, "z": -3, "w": 4, "d": 6 },
+    { "type": "crumble", "x": 26, "y": 0.5, "z": -1.5, "w": 3, "d": 3 },
+    { "type": "crumble", "x": 31, "y": 0.5, "z": -1.5, "w": 3, "d": 3 },
+    { "type": "crumble", "x": 45, "y": 1.5, "z": -1.5, "w": 3, "d": 3 },
+    { "type": "crumble", "x": 50, "y": 3, "z": -1.5, "w": 3, "d": 3 },
+    { "type": "crumble", "x": 55, "y": 4.5, "z": -1.5, "w": 3, "d": 3 }
+  ],
+  "intendedPath": "The first cracked slab drops you a single safe step — feel it give way. Then hop the two cracked slabs bridging the void without lingering, catch your breath, and climb the crumbling staircase in one committed run to the high gate.",
+  "hints": ["crumble", "keep-moving"]
+}

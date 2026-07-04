@@ -1,0 +1,56 @@
+{
+  "id": "level-15",
+  "name": "Zenith Trial",
+  "world": 3,
+  "bounds": { "x": 0, "y": -10, "z": -10, "w": 52, "h": 30, "d": 20 },
+  "killY": -8,
+  "spawn": { "x": 3, "y": 1.5, "z": 0 },
+  "portal": { "x": 32.5, "y": 11.5, "z": 5.75, "rotY": 90 },
+  "shards": [
+    { "x": 7, "y": 2, "z": 0 },
+    { "x": 28.5, "y": 4.6, "z": -1.5 },
+    { "x": 48.6, "y": 12, "z": 5.7 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -4, "w": 12, "h": 1, "d": 8 },
+    { "type": "box", "x": 15, "y": 0, "z": -3, "w": 6, "h": 1, "d": 6 },
+    { "type": "box", "x": 21, "y": 2.5, "z": -2.5, "w": 12, "h": 1, "d": 5 },
+    { "type": "box", "x": 35, "y": 7, "z": -2.5, "w": 8, "h": 1, "d": 5 },
+    { "type": "box", "x": 45, "y": 8, "z": -0.6, "w": 1.2, "h": 1, "d": 1.2 },
+    { "type": "box", "x": 48, "y": 10, "z": 5.1, "w": 1.2, "h": 1, "d": 1.2 },
+    { "type": "box", "x": 30, "y": 10.5, "z": 4, "w": 16, "h": 1, "d": 3.5 }
+  ],
+  "hazards": [
+    { "type": "bouncer", "x": 18.5, "y": 1, "z": 0 },
+    {
+      "type": "blade",
+      "x": 28.5,
+      "y": 3.9,
+      "z": -3,
+      "r": 1.2,
+      "path": [
+        { "x": 28.5, "y": 3.9, "z": -3 },
+        { "x": 28.5, "y": 3.9, "z": 3 }
+      ],
+      "speed": 2.5,
+      "mode": "pingpong"
+    },
+    { "type": "bouncer", "x": 31.5, "y": 3.5, "z": 0 },
+    { "type": "crumble", "x": 48, "y": 9.5, "z": 1.6, "w": 1.4, "d": 1.4 },
+    {
+      "type": "blade",
+      "x": 35.5,
+      "y": 11.9,
+      "z": 5.75,
+      "r": 1.2,
+      "path": [
+        { "x": 35.5, "y": 11.9, "z": 5.75 },
+        { "x": 40, "y": 11.9, "z": 5.75 }
+      ],
+      "speed": 3,
+      "mode": "pingpong"
+    }
+  ],
+  "intendedPath": "Roll through the first shard, jump the gap to the bounce island and ride the pad up onto the walkway; cross the patrolling grinder along the shard's lane, keep your speed into the second pad and double-jump mid-flight to top the high tower; commit to the pillar chain — the cracked slab gives way fast — take the shard atop the last pillar, hop across to the summit walk, leap the corridor grinder as it sweeps toward you, and roll back over the whole climb into the gate.",
+  "hints": ["bounce", "air-double", "commit", "hop"]
+}

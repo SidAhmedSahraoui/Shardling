@@ -1,0 +1,24 @@
+{
+  "id": "level-03",
+  "name": "Ashen Heights",
+  "world": 1,
+  "bounds": { "x": 0, "y": -10, "z": -10, "w": 56, "h": 30, "d": 20 },
+  "killY": -8,
+  "spawn": { "x": 4, "y": 1.5, "z": 0 },
+  "portal": { "x": 48, "y": 1, "z": 0, "rotY": 90 },
+  "shards": [
+    { "x": 10, "y": 2, "z": 0 },
+    { "x": 17, "y": 6.2, "z": 0 },
+    { "x": 38, "y": 3, "z": 0 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -3, "w": 14, "h": 1, "d": 6 },
+    { "type": "box", "x": 14, "y": 2.5, "z": -3, "w": 6, "h": 1, "d": 6 },
+    { "type": "box", "x": 20, "y": 5.5, "z": -3, "w": 6, "h": 1, "d": 6 },
+    { "type": "box", "x": 28.5, "y": 5.5, "z": -3, "w": 6, "h": 1, "d": 6 },
+    { "type": "box", "x": 37, "y": 0, "z": -4, "w": 16, "h": 1, "d": 8 }
+  ],
+  "hazards": [],
+  "intendedPath": "Double-jump up the first ledge, double again for the shard floating high above it and up the taller wall, cross the gap at the summit, then dive off the far edge — you fall through the last shard on the way down to the gate.",
+  "hints": ["double-jump", "climb"]
+}

@@ -1,0 +1,74 @@
+{
+  "id": "level-20",
+  "name": "The Hollow Heart",
+  "world": 4,
+  "bounds": { "x": 0, "y": -10, "z": -6, "w": 40, "h": 30, "d": 32 },
+  "killY": -8,
+  "spawn": { "x": 3, "y": 1.5, "z": 0 },
+  "portal": { "x": 6, "y": 10.5, "z": 18, "rotY": 90 },
+  "shards": [
+    { "x": 7, "y": 2, "z": 0 },
+    { "x": 34.5, "y": 10.8, "z": 18 },
+    { "x": 12, "y": 11.5, "z": 18 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -4, "w": 14, "h": 1, "d": 8 },
+    { "type": "box", "x": 31, "y": 3, "z": -3, "w": 6, "h": 1, "d": 6 },
+    { "type": "box", "x": 32, "y": 6, "z": 15, "w": 6, "h": 1, "d": 6 },
+    { "type": "box", "x": 18, "y": 8.5, "z": 15, "w": 14, "h": 1, "d": 6 },
+    { "type": "box", "x": 2, "y": 9.5, "z": 12, "w": 14, "h": 1, "d": 12 }
+  ],
+  "hazards": [
+    { "type": "blade", "x": 10.5, "y": 1.4, "z": 0, "r": 1.2 },
+    {
+      "type": "platform",
+      "x": 16,
+      "y": 1,
+      "z": -1.5,
+      "w": 3,
+      "d": 3,
+      "path": [
+        { "x": 16, "y": 1, "z": -1.5 },
+        { "x": 26, "y": 3.5, "z": -1.5 }
+      ],
+      "speed": 2.5,
+      "mode": "pingpong"
+    },
+    { "type": "crumble", "x": 33, "y": 4.5, "z": 5, "w": 3, "d": 3 },
+    { "type": "crumble", "x": 33, "y": 5.5, "z": 10, "w": 3, "d": 3 },
+    { "type": "bouncer", "x": 34.5, "y": 7, "z": 18 },
+    {
+      "type": "blade",
+      "x": 25,
+      "y": 9.9,
+      "z": 16.5,
+      "r": 1.2,
+      "path": [
+        { "x": 25, "y": 9.9, "z": 16.5 },
+        { "x": 25, "y": 9.9, "z": 19.5 }
+      ],
+      "speed": 2.5,
+      "mode": "pingpong"
+    },
+    {
+      "type": "spikes",
+      "x": 4,
+      "y": 10.5,
+      "z": 12.5,
+      "w": 8,
+      "d": 2,
+      "face": "up"
+    },
+    {
+      "type": "spikes",
+      "x": 4,
+      "y": 10.5,
+      "z": 21.5,
+      "w": 8,
+      "d": 2,
+      "face": "up"
+    }
+  ],
+  "intendedPath": "Take the shard on the run-up and slip past the grindstone on either flank, ride the rising ferry from the terrace edge to the high landing, then turn and commit across the two cracked steps onto the loft in one run; the spring pad at its heart throws you through the second shard — drift west onto the walkway, cross the sweeping blade at whichever rim it has just left, leap up into the heart chamber, and let the thorn-framed causeway carry you through the last shard into the gate.",
+  "hints": ["everything", "flow", "commit"]
+}

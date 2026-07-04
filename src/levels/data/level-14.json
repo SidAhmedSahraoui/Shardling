@@ -1,0 +1,47 @@
+{
+  "id": "level-14",
+  "name": "Splinter Steps",
+  "world": 3,
+  "bounds": { "x": 0, "y": -10, "z": -10, "w": 66, "h": 30, "d": 20 },
+  "killY": -8,
+  "spawn": { "x": 3, "y": 1.5, "z": 0 },
+  "portal": { "x": 59.5, "y": 1, "z": 0, "rotY": 90 },
+  "shards": [
+    { "x": 7, "y": 2, "z": 0 },
+    { "x": 29.75, "y": 3.5, "z": 1.25 },
+    { "x": 52, "y": 7.5, "z": 0.5 }
+  ],
+  "terrain": [
+    { "type": "box", "x": 0, "y": 0, "z": -3, "w": 10, "h": 1, "d": 6 },
+    { "type": "box", "x": 12.5, "y": 0.5, "z": -1, "w": 1, "h": 1, "d": 2 },
+    { "type": "box", "x": 16, "y": 1, "z": 0, "w": 1, "h": 1, "d": 2 },
+    { "type": "box", "x": 19.5, "y": 1.5, "z": -1.5, "w": 4, "h": 1, "d": 3 },
+    { "type": "box", "x": 36, "y": 1.5, "z": -2.5, "w": 6, "h": 1, "d": 5 },
+    { "type": "box", "x": 44, "y": 5.5, "z": -1, "w": 2, "h": 1, "d": 2 },
+    { "type": "box", "x": 48, "y": 5.5, "z": 0.5, "w": 1, "h": 1, "d": 2 },
+    { "type": "box", "x": 51.5, "y": 5.5, "z": -0.5, "w": 1, "h": 1, "d": 2 },
+    { "type": "box", "x": 55, "y": 0, "z": -3, "w": 8, "h": 1, "d": 6 }
+  ],
+  "hazards": [
+    {
+      "type": "crumble",
+      "x": 25.5,
+      "y": 2,
+      "z": -0.75,
+      "w": 1.5,
+      "d": 1.5
+    },
+    { "type": "crumble", "x": 29, "y": 2, "z": 0.5, "w": 1.5, "d": 1.5 },
+    {
+      "type": "crumble",
+      "x": 32.5,
+      "y": 2,
+      "z": -0.75,
+      "w": 1.5,
+      "d": 1.5
+    },
+    { "type": "bouncer", "x": 40, "y": 2.5, "z": 0 }
+  ],
+  "intendedPath": "Hop the two splinter ledges rising from the spawn island, catch your breath on the rest stone, cross the three cracked steps in one committed zig-zag run, then roll onto the bounce pad — bounce, double-jump at the apex onto the high shelf, thread the two narrow perches for the last shard, and drop-jump down to the gate.",
+  "hints": ["narrow", "commit", "bounce-double"]
+}
