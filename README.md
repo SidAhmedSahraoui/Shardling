@@ -8,9 +8,9 @@ You play a shardling: a palm-sized orb of living soot with one luminous eye, rol
 
 TypeScript · Three.js · Rapier (WASM) · Vite - ~1.1 MB gzipped, no binary assets.
 
-<video src="demo/shardling-15s-1080p.mp4" controls muted loop playsinline width="760"></video>
+<img src="demo/shardling-15s.gif" alt="Shardling gameplay demo" width="760" />
 
-**▶️ [Watch the 15-second gameplay demo →](demo/shardling-15s-1080p.mp4)** &nbsp;·&nbsp; 1080p MP4
+**▶️ [Watch the 15-second demo in full quality →](demo/shardling-15s-1080p.mp4)** &nbsp;·&nbsp; 1080p MP4
 
 </div>
 
