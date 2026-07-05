@@ -1,6 +1,7 @@
 import { lighting, palette } from "../config/palette";
 import type { EventBus } from "../core/EventBus";
 import type { LevelRecord, SaveManager } from "../core/SaveManager";
+import { isAllLevelsUnlocked } from "../debug/flags";
 import type { LevelEntry } from "../levels/registry";
 import { isUnlocked, levels } from "../levels/registry";
 import { cycleFocus, el, ListenerBag } from "../ui/dom";
@@ -72,7 +73,7 @@ function levelTile(
     justifyContent: "center",
     gap: "6px",
     padding: "12px 18px",
-    textAlign: "left",
+    textAlign: "start",
     borderColor: cssColorAlpha(accent, unlocked ? 0.4 : 0.12),
   });
 
@@ -88,7 +89,10 @@ function levelTile(
     fontVariantNumeric: "tabular-nums",
     textShadow: `0 0 10px ${cssColorAlpha(accent, 0.4)}`,
   });
-  nameRow.append(number, el("span", "", entry.name));
+  nameRow.append(
+    number,
+    el("span", "", strings.levelNames[entry.id] ?? entry.name),
+  );
   tile.appendChild(nameRow);
 
   const meta = el("div");
@@ -203,7 +207,7 @@ export class LevelSelectScreen implements Screen {
           gap: "12px",
         });
         for (const { entry, playNumber } of worldLevels) {
-          const unlocked = isUnlocked(entry.id, save);
+          const unlocked = isAllLevelsUnlocked() || isUnlocked(entry.id, save);
           const tile = levelTile(
             entry,
             playNumber,

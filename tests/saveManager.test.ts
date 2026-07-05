@@ -33,6 +33,7 @@ describe("SaveManager", () => {
       muted: false,
       reduceMotion: false,
       camSensitivity: tuning.defaultCamSensitivity,
+      language: "en",
     });
     expect(save.getLevel("level-01")).toBeUndefined();
   });
@@ -108,6 +109,7 @@ describe("SaveManager", () => {
       muted: false,
       reduceMotion: false,
       camSensitivity: tuning.defaultCamSensitivity,
+      language: "en",
     });
   });
 
@@ -127,6 +129,7 @@ describe("SaveManager", () => {
       muted: true,
       reduceMotion: true,
       camSensitivity: tuning.defaultCamSensitivity,
+      language: "en",
     });
     expect(save.getLevel("level-01")).toEqual({
       completed: true,
@@ -159,6 +162,7 @@ describe("SaveManager", () => {
       muted: false,
       reduceMotion: false,
       camSensitivity: tuning.defaultCamSensitivity,
+      language: "en",
     });
   });
 

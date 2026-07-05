@@ -11,6 +11,7 @@ const settingsSchema = z.object({
   muted: z.boolean(),
   reduceMotion: z.boolean(),
   camSensitivity: z.number(),
+  language: z.string().default("en"),
 });
 
 const levelRecordSchema = z.object({
@@ -45,6 +46,7 @@ function createDefaults(): SaveData {
       muted: false,
       reduceMotion: false,
       camSensitivity: tuning.defaultCamSensitivity,
+      language: "en",
     },
     levels: {},
   };
@@ -192,6 +194,9 @@ export class SaveManager {
         tuning.camSensitivityMin,
         tuning.camSensitivityMax,
       );
+    }
+    if (patch.language !== undefined) {
+      next.language = patch.language;
     }
     this.data.settings = next;
     this.persist();

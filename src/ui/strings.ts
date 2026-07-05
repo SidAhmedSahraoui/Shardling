@@ -1,4 +1,83 @@
-export const strings = {
+export interface Strings {
+  appTitle: string;
+  menu: {
+    play: string;
+    settings: string;
+    versionPrefix: string;
+    credits: string;
+  };
+  settings: {
+    title: string;
+    volume: string;
+    mute: string;
+    reduceMotion: string;
+    camSensitivity: string;
+    language: string;
+    back: string;
+    on: string;
+    off: string;
+  };
+  hud: {
+    shards: string;
+    time: string;
+    deaths: string;
+    pause: string;
+  };
+  pause: {
+    title: string;
+    resume: string;
+    restart: string;
+    quitToMenu: string;
+  };
+  levelSelect: {
+    title: string;
+    back: string;
+    worldPrefix: string;
+    worldNames: readonly string[];
+    comingSoon: string;
+    locked: string;
+    best: string;
+    deaths: string;
+  };
+  complete: {
+    title: string;
+    time: string;
+    deaths: string;
+    best: string;
+    newBest: string;
+    noBest: string;
+    next: string;
+    replay: string;
+    levels: string;
+  };
+  orientation: {
+    rotate: string;
+  };
+  touch: {
+    move: string;
+    jump: string;
+  };
+  debug: {
+    panelTitle: string;
+    folderMovement: string;
+    folderCamera: string;
+    folderPostFx: string;
+    copyAsCode: string;
+    hudFps: string;
+    hudDrawCalls: string;
+    hudTriangles: string;
+    hudBodies: string;
+    hudGeometries: string;
+    hudState: string;
+    hudFreeFly: string;
+    hudOn: string;
+    hudOff: string;
+    hudNone: string;
+  };
+  levelNames: Record<string, string>;
+}
+
+export const en: Strings = {
   appTitle: "Shardling",
   menu: {
     play: "Play",
@@ -12,6 +91,7 @@ export const strings = {
     mute: "Mute",
     reduceMotion: "Reduce motion",
     camSensitivity: "Camera sensitivity",
+    language: "Language",
     back: "Back",
     on: "On",
     off: "Off",
@@ -73,6 +153,11 @@ export const strings = {
     hudOff: "off",
     hudNone: "—",
   },
-} as const;
+  levelNames: {},
+};
 
-export type Strings = typeof strings;
+export let strings: Strings = en;
+
+export function setActiveStrings(next: Strings): void {
+  strings = next;
+}

@@ -2,6 +2,13 @@ import { tuning } from "../config/tuning";
 import type { EventBus } from "../core/EventBus";
 import type { SaveManager } from "../core/SaveManager";
 import { cycleFocus, el, ListenerBag, uniqueId } from "../ui/dom";
+import {
+  getLocale,
+  type Locale,
+  localeLabels,
+  LOCALES,
+  setLocale,
+} from "../ui/i18n";
 import { strings } from "../ui/strings";
 import { uiClass } from "../ui/theme";
 import type { Screen } from "./ScreenManager";
@@ -71,10 +78,49 @@ function toggleRow(labelText: string, initial: boolean): ToggleRow {
   return { row, input, value };
 }
 
+interface LanguageRow {
+  row: HTMLDivElement;
+  entries: { locale: Locale; button: HTMLButtonElement }[];
+}
+
+function languageRow(currentLocale: Locale): LanguageRow {
+  const row = el("div", `${uiClass.row} ${uiClass.rowStatic}`);
+  const label = el("span", uiClass.rowLabel, strings.settings.language);
+  const group = el("div");
+  Object.assign(group.style, {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    justifyContent: "flex-end",
+  });
+  const entries = LOCALES.map((locale) => {
+    const active = locale === currentLocale;
+    const button = el(
+      "button",
+      active ? `${uiClass.btn} ${uiClass.btnPrimary}` : uiClass.btn,
+      localeLabels[locale],
+    );
+    button.type = "button";
+    button.lang = locale;
+    button.setAttribute("aria-pressed", String(active));
+    Object.assign(button.style, {
+      minWidth: "0",
+      minHeight: "52px",
+      padding: "0 16px",
+      fontSize: "16px",
+    });
+    group.append(button);
+    return { locale, button };
+  });
+  row.append(label, group);
+  return { row, entries };
+}
+
 export interface SettingsScreenOptions {
   save: SaveManager;
   bus: EventBus;
   onBack: () => void;
+  onLocaleChange: () => void;
 }
 
 export class SettingsScreen implements Screen {
@@ -85,12 +131,14 @@ export class SettingsScreen implements Screen {
   private readonly firstControl: HTMLElement;
 
   constructor(opts: SettingsScreenOptions) {
-    const { save, bus, onBack } = opts;
+    const { save, bus, onBack, onLocaleChange } = opts;
     const initial = save.getSettings();
 
     this.el = el("div", uiClass.screen);
 
     const heading = el("h1", uiClass.heading, strings.settings.title);
+
+    const language = languageRow(getLocale());
 
     const volume = sliderRow(
       strings.settings.volume,
@@ -115,7 +163,13 @@ export class SettingsScreen implements Screen {
     );
 
     const panel = el("div", uiClass.panel);
-    panel.append(volume.row, mute.row, reduce.row, sensitivity.row);
+    panel.append(
+      language.row,
+      volume.row,
+      mute.row,
+      reduce.row,
+      sensitivity.row,
+    );
 
     const back = el("button", uiClass.btn, strings.settings.back);
     back.type = "button";
@@ -171,7 +225,24 @@ export class SettingsScreen implements Screen {
       onBack();
     });
 
+    const pickLanguage = (locale: Locale): void => {
+      if (locale === getLocale()) {
+        return;
+      }
+      bus.emit("ui:click");
+      const settings = save.updateSettings({ language: locale });
+      setLocale(locale);
+      bus.emit("settings:changed", { settings });
+      onLocaleChange();
+    };
+    for (const { locale, button } of language.entries) {
+      this.bag.add(button, "click", () => {
+        pickLanguage(locale);
+      });
+    }
+
     this.controls = [
+      ...language.entries.map((entry) => entry.button),
       volume.input,
       mute.input,
       reduce.input,

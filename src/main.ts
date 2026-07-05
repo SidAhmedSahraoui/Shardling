@@ -31,6 +31,7 @@ import { SettingsScreen } from "./screens/SettingsScreen";
 import { selectPortalSdk } from "./sdk/crazyGamesSdk";
 import { PortalBridge } from "./sdk/PortalBridge";
 import type { PortalSdk } from "./sdk/PortalSdk";
+import { detectLocale, isLocale, setLocale } from "./ui/i18n";
 import { installFavicon } from "./ui/logo";
 import { OrientationHint } from "./ui/OrientationHint";
 import { TouchControls } from "./ui/TouchControls";
@@ -74,6 +75,13 @@ const bus = new EventBus();
 const sdk = await selectPortalSdk();
 const portal = new PortalBridge({ sdk, bus, save });
 await portal.restoreCloudSave(save);
+
+const storedLanguage = save.getSettings().language;
+setLocale(
+  save.hasLocalSave() && isLocale(storedLanguage)
+    ? storedLanguage
+    : detectLocale(),
+);
 
 let cachedSettings: Settings = save.getSettings();
 bus.on("settings:changed", ({ settings }) => {
@@ -382,6 +390,9 @@ function showSettings(): void {
       bus,
       onBack: () => {
         showMenu();
+      },
+      onLocaleChange: () => {
+        showSettings();
       },
     }),
   );
