@@ -77,9 +77,12 @@ fine.
    - Progress persists across a reload (cloud save round-trips).
 4. Provide store metadata: title **Shardling**, the description/tags from
    `index.html`'s meta tags, and a capture of gameplay for the thumbnail.
-5. Controls to list: **WASD/Arrows** move, **Space** jump/double-jump,
-   **Q/E or drag** rotate camera, **mouse wheel/pinch** zoom, **Esc/P** pause,
-   **R** restart. On touch: on-screen joystick + jump button, drag to rotate.
+5. Controls to list: **WASD/Arrows** move (physical positions — ZQSD works
+   on AZERTY, and the in-game hints relabel themselves via the browser's
+   keyboard layout map), **Space** jump/double-jump,
+   **Q/E or drag** rotate camera, **mouse wheel/pinch** zoom, **P** pause
+   (Esc is left to the portal's fullscreen exit), **R** restart. On touch:
+   on-screen joystick + jump button, drag to rotate.
 
 ## 5. Notes
 

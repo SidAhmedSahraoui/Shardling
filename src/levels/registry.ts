@@ -79,6 +79,21 @@ export function isUnlocked(
   return isUnlockedIn(levels, id, save);
 }
 
+export function firstIncompleteLevel(
+  save: Pick<SaveManager, "getLevel">,
+): LevelEntry | null {
+  return firstIncompleteLevelIn(levels, save);
+}
+
+export function firstIncompleteLevelIn(
+  entries: readonly LevelEntry[],
+  save: Pick<SaveManager, "getLevel">,
+): LevelEntry | null {
+  return (
+    entries.find((entry) => save.getLevel(entry.id)?.completed !== true) ?? null
+  );
+}
+
 export function nextLevelIdIn(
   entries: readonly LevelEntry[],
   id: string,

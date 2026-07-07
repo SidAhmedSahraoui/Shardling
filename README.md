@@ -10,7 +10,6 @@ TypeScript · Three.js · Rapier (WASM) · Vite - ~1.1 MB gzipped, no binary ass
 
 <img src="demo/shardling-15s.webp" alt="Shardling gameplay demo" width="760" />
 
-
 </div>
 
 ---
@@ -41,7 +40,7 @@ It's a complete game: 20 hand-authored levels across four worlds, a real momentu
 
 | Action     | Keyboard / Mouse                                         | Touch                             |
 | ---------- | -------------------------------------------------------- | --------------------------------- |
-| Move       | `WASD` / Arrow keys                                      | Left on-screen joystick           |
+| Move       | `WASD` (`ZQSD` on AZERTY) / Arrow keys                   | Left on-screen joystick           |
 | Jump       | `Space` (tap low, hold high; press again to double-jump) | Right jump button                 |
 | Aim camera | Drag mouse                                               | Drag the right side of the screen |
 | Zoom       | Scroll wheel                                             | Pinch                             |

@@ -4,9 +4,16 @@ export const fr: Strings = {
   appTitle: "Shardling",
   menu: {
     play: "Jouer",
+    levels: "Niveaux",
     settings: "Paramètres",
     versionPrefix: "v",
     credits: "Créé par Sid Ahmed Sahraoui",
+  },
+  hints: {
+    move: "Se déplacer",
+    jump: "Sauter",
+    doubleJump: "Sautez à nouveau en l'air",
+    spaceKey: "Espace",
   },
   settings: {
     title: "Paramètres",

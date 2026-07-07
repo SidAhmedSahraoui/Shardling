@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import type { LevelRecord, SaveManager } from "../src/core/SaveManager";
 import type { LevelEntry } from "../src/levels/registry";
 import {
+  firstIncompleteLevel,
+  firstIncompleteLevelIn,
   isUnlocked,
   isUnlockedIn,
   levelById,
@@ -129,5 +131,55 @@ describe("unlock chain (list-parameterized)", () => {
     expect(nextLevelIdIn(chain, "w1-b")).toBe("w1-c");
     expect(nextLevelIdIn(chain, "w1-c")).toBeNull();
     expect(nextLevelIdIn(chain, "nope")).toBeNull();
+  });
+});
+
+describe("firstIncompleteLevel", () => {
+  const chain = [makeEntry("w1-a"), makeEntry("w1-b"), makeEntry("w1-c")];
+
+  it("returns the first level on a fresh save", () => {
+    expect(firstIncompleteLevelIn(chain, makeSave())?.id).toBe("w1-a");
+    expect(firstIncompleteLevel(makeSave())?.id).toBe("level-01");
+  });
+
+  it("returns the next level after the completed prefix", () => {
+    expect(firstIncompleteLevelIn(chain, makeSave(["w1-a"]))?.id).toBe("w1-b");
+    expect(firstIncompleteLevelIn(chain, makeSave(["w1-a", "w1-b"]))?.id).toBe(
+      "w1-c",
+    );
+  });
+
+  it("skips completion gaps to the earliest incomplete level", () => {
+    expect(firstIncompleteLevelIn(chain, makeSave(["w1-b"]))?.id).toBe("w1-a");
+  });
+
+  it("treats an incomplete record as not completed", () => {
+    const store = new Map<string, LevelRecord>([
+      ["w1-a", { completed: false, bestTimeMs: null, deaths: 0 }],
+    ]);
+    const save: SaveStub = { getLevel: (id: string) => store.get(id) };
+    expect(firstIncompleteLevelIn(chain, save)?.id).toBe("w1-a");
+  });
+
+  it("returns null when every level is completed", () => {
+    expect(
+      firstIncompleteLevelIn(chain, makeSave(["w1-a", "w1-b", "w1-c"])),
+    ).toBeNull();
+  });
+
+  it("always returns an unlocked level", () => {
+    for (const completed of [
+      [],
+      ["w1-a"],
+      ["w1-a", "w1-b"],
+      ["w1-b"],
+      ["w1-b", "w1-c"],
+    ]) {
+      const save = makeSave(completed);
+      const entry = firstIncompleteLevelIn(chain, save);
+      if (entry !== null) {
+        expect(isUnlockedIn(chain, entry.id, save)).toBe(true);
+      }
+    }
   });
 });

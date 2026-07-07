@@ -19,7 +19,12 @@ import type { ShowcaseScene } from "./game/showcase";
 import { buildShowcase } from "./game/showcase";
 import { MaterialFactory } from "./gfx/MaterialFactory";
 import type { LevelEntry } from "./levels/registry";
-import { levelById, nextLevelId } from "./levels/registry";
+import {
+  firstIncompleteLevel,
+  levelById,
+  levels,
+  nextLevelId,
+} from "./levels/registry";
 import { FadeVeil } from "./screens/FadeVeil";
 import { Hud } from "./screens/Hud";
 import { LevelCompleteScreen } from "./screens/LevelCompleteScreen";
@@ -31,6 +36,8 @@ import { SettingsScreen } from "./screens/SettingsScreen";
 import { selectPortalSdk } from "./sdk/crazyGamesSdk";
 import { PortalBridge } from "./sdk/PortalBridge";
 import type { PortalSdk } from "./sdk/PortalSdk";
+import type { ControlHintsKind } from "./ui/ControlHints";
+import { ControlHints } from "./ui/ControlHints";
 import { detectLocale, isLocale, setLocale } from "./ui/i18n";
 import { installFavicon } from "./ui/logo";
 import { OrientationHint } from "./ui/OrientationHint";
@@ -146,8 +153,22 @@ const veil = new FadeVeil({
 let session: GameScreen | null = null;
 let sessionEntry: LevelEntry | null = null;
 let hud: Hud | null = null;
+let hints: ControlHints | null = null;
 let showcase: ShowcaseScene | null = null;
 let active: LoopHooks;
+
+function hintKindFor(entry: LevelEntry): ControlHintsKind | null {
+  if (save.getLevel(entry.id)?.completed === true) {
+    return null;
+  }
+  if (entry.id === levels[0]?.id) {
+    return "basics";
+  }
+  if (entry.id === levels[1]?.id) {
+    return "doubleJump";
+  }
+  return null;
+}
 
 const input = new InputManager({
   target: app.renderer.domElement,
@@ -225,6 +246,21 @@ function startSession(entry: LevelEntry | null): void {
       onPause: pauseGame,
       root: uiRoot,
     });
+    const hintKind = hintKindFor(sessionEntry);
+    if (hintKind !== null && !ControlHints.isCoarsePointer()) {
+      hints = new ControlHints({
+        bus,
+        kind: hintKind,
+        reduceMotion: () => cachedSettings.reduceMotion,
+        isGameplayActive: () =>
+          session !== null &&
+          !session.paused &&
+          !session.dying &&
+          screens.current === null &&
+          !screens.busy,
+        root: uiRoot,
+      });
+    }
   }
   touchControls.show();
 }
@@ -234,6 +270,8 @@ function endSession(): void {
     return;
   }
   touchControls.hide();
+  hints?.destroy();
+  hints = null;
   hud?.destroy();
   hud = null;
   session.destroy();
@@ -355,6 +393,15 @@ function showMenu(): void {
       version: __APP_VERSION__,
       bus,
       onPlay: () => {
+        const entry = firstIncompleteLevel(save);
+        if (entry) {
+          startSession(entry);
+          void screens.show(null);
+        } else {
+          showLevelSelect();
+        }
+      },
+      onLevels: () => {
         showLevelSelect();
       },
       onSettings: () => {
@@ -403,7 +450,7 @@ window.addEventListener("keydown", (event) => {
     return;
   }
   const key = event.key;
-  if (key === "Escape" || key === "p" || key === "P") {
+  if (key === "p" || key === "P") {
     if (session) {
       pauseGame();
     } else {

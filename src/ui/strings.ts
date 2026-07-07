@@ -2,9 +2,16 @@ export interface Strings {
   appTitle: string;
   menu: {
     play: string;
+    levels: string;
     settings: string;
     versionPrefix: string;
     credits: string;
+  };
+  hints: {
+    move: string;
+    jump: string;
+    doubleJump: string;
+    spaceKey: string;
   };
   settings: {
     title: string;
@@ -81,9 +88,16 @@ export const en: Strings = {
   appTitle: "Shardling",
   menu: {
     play: "Play",
+    levels: "Levels",
     settings: "Settings",
     versionPrefix: "v",
     credits: "Made by Sid Ahmed Sahraoui",
+  },
+  hints: {
+    move: "Move",
+    jump: "Jump",
+    doubleJump: "Jump again in the air",
+    spaceKey: "Space",
   },
   settings: {
     title: "Settings",

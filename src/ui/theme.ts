@@ -84,6 +84,13 @@ export const uiClass = {
   hudPunch: "sg-hud-punch",
   veil: "sg-veil",
   veilOpaque: "sg-veil--opaque",
+  hints: "sg-hints",
+  hintsReduce: "sg-hints--reduce",
+  hint: "sg-hint",
+  hintHidden: "sg-hint--hidden",
+  hintKeys: "sg-hint-keys",
+  hintLabel: "sg-hint-label",
+  kbd: "sg-kbd",
 } as const;
 
 const textPrimary = cssColor(mixColors(lighting.hemiSky, palette.eye, 0.12));
@@ -511,6 +518,70 @@ function buildStylesheet(): string {
 @media (prefers-reduced-motion: reduce) {
   .${uiClass.hud},
   .${uiClass.hud} * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.${uiClass.hints} {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  font-family: ${FONT_STACK};
+}
+.${uiClass.hint} {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  border-radius: 14px;
+  border: 1px solid ${cssColorAlpha(eye, 0.12)};
+  background: ${cssColorAlpha(bg0, 0.68)};
+  opacity: 1;
+  transition: opacity ${tuning.uiFadeMs}ms ease;
+}
+.${uiClass.hintHidden} {
+  opacity: 0;
+}
+.${uiClass.hintKeys} {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  direction: ltr;
+}
+.${uiClass.kbd} {
+  display: inline-block;
+  min-width: 18px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: 1px solid ${cssColorAlpha(eye, 0.35)};
+  border-bottom-width: 2px;
+  background: ${cssColorAlpha(bg1, 0.92)};
+  color: ${textPrimary};
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+.${uiClass.hintLabel} {
+  font-size: 15px;
+  color: ${textDim};
+  letter-spacing: 0.04em;
+}
+.${uiClass.hintsReduce},
+.${uiClass.hintsReduce} * {
+  transition: none !important;
+  animation: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .${uiClass.hints},
+  .${uiClass.hints} * {
     transition: none !important;
     animation: none !important;
   }

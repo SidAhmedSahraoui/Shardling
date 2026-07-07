@@ -8,6 +8,7 @@ import type { Screen } from "./ScreenManager";
 export interface MenuScreenOptions {
   version: string;
   onPlay: () => void;
+  onLevels: () => void;
   onSettings: () => void;
   bus: EventBus;
 }
@@ -32,11 +33,13 @@ export class MenuScreen implements Screen {
       strings.menu.play,
     );
     play.type = "button";
+    const levels = el("button", uiClass.btn, strings.menu.levels);
+    levels.type = "button";
     const settings = el("button", uiClass.btn, strings.menu.settings);
     settings.type = "button";
 
     const actions = el("div", uiClass.menuActions);
-    actions.append(play, settings);
+    actions.append(play, levels, settings);
 
     const version = el(
       "p",
@@ -51,12 +54,16 @@ export class MenuScreen implements Screen {
       opts.bus.emit("ui:click");
       opts.onPlay();
     });
+    this.bag.add(levels, "click", () => {
+      opts.bus.emit("ui:click");
+      opts.onLevels();
+    });
     this.bag.add(settings, "click", () => {
       opts.bus.emit("ui:click");
       opts.onSettings();
     });
 
-    this.controls = [play, settings];
+    this.controls = [play, levels, settings];
     this.bag.addWindow("keydown", (ev) => {
       if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
         ev.preventDefault();

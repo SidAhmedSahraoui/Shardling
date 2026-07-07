@@ -56,7 +56,7 @@ export class PauseScreen implements Screen {
 
     this.controls = [resume, restart, quit];
     this.bag.addWindow("keydown", (ev) => {
-      if (ev.key === "Escape") {
+      if (ev.key === "p" || ev.key === "P") {
         ev.preventDefault();
         bus.emit("ui:click");
         opts.onResume();

@@ -4,9 +4,16 @@ export const ar: Strings = {
   appTitle: "Shardling",
   menu: {
     play: "العب",
+    levels: "المستويات",
     settings: "الإعدادات",
     versionPrefix: "إصدار ",
     credits: "من إنجاز Sid Ahmed Sahraoui",
+  },
+  hints: {
+    move: "تحرّك",
+    jump: "اقفز",
+    doubleJump: "اقفز مجددًا في الهواء",
+    spaceKey: "مسافة",
   },
   settings: {
     title: "الإعدادات",
