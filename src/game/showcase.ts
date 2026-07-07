@@ -1,4 +1,4 @@
-import type { Mesh, Object3D } from "three";
+import type { InstancedMesh, Mesh, Object3D } from "three";
 import { DirectionalLight, FogExp2, HemisphereLight, Vector3 } from "three";
 
 import { lighting, palette } from "../config/palette";
@@ -54,7 +54,7 @@ export function buildShowcase(
     return obj;
   };
 
-  scene.fog = new FogExp2(palette.bg1, tuning.fogDensity);
+  scene.fog = new FogExp2(palette.fog, tuning.fogDensity);
 
   const hemi = new HemisphereLight(
     lighting.hemiSky,
@@ -67,6 +67,7 @@ export function buildShowcase(
   roots.push(hemi, dir);
 
   add(meshes.skyDome(80), 0, 0, 0);
+  const islands = add(meshes.distantIslands(), 0, 0, 0);
 
   add(meshes.platform(14, 1, 10), 0, -0.5, 0);
   add(meshes.ramp(3, 1.5, 2.5, "+x"), -4.5, 0.75, -2.5);
@@ -159,6 +160,7 @@ export function buildShowcase(
           }
         }
         orbitRad += (frameDt * (Math.PI * 2)) / ORBIT_PERIOD_SEC;
+        islands.rotation.y += frameDt * tuning.distantIslandDriftRadPerSec;
       }
       placeCamera();
 
@@ -168,6 +170,10 @@ export function buildShowcase(
     dispose(): void {
       for (const root of roots) {
         root.traverse((obj) => {
+          const instanced = obj as InstancedMesh;
+          if (instanced.isInstancedMesh) {
+            instanced.dispose();
+          }
           const mesh = obj as Mesh;
           if (mesh.isMesh) {
             mesh.geometry.dispose();

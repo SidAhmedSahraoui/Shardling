@@ -62,11 +62,42 @@ const RING_TEXTURE_SIZE = 64;
 const RING_INNER_STOP = 0.68;
 const RING_PEAK_STOP = 0.8;
 const RING_OUTER_STOP = 0.92;
-const SKY_TEXTURE_WIDTH = 4;
-const SKY_TEXTURE_HEIGHT = 256;
+const SKY_TEXTURE_WIDTH = 2048;
+const SKY_TEXTURE_HEIGHT = 1024;
+const SKY_MID_STOP = 0.5;
+const SKY_HORIZON_START = 0.36;
+const SKY_HORIZON_PEAK = 0.5;
+const SKY_HORIZON_END = 0.64;
+const SKY_HORIZON_ALPHA = 0.4;
+const STAR_BAND_TOP_V = 0.08;
+const STAR_BAND_BOTTOM_V = 0.52;
+const STAR_MIN_RADIUS_PX = 0.5;
+const STAR_MAX_RADIUS_PX = 1.3;
+const STAR_MIN_ALPHA = 0.25;
+const STAR_MAX_ALPHA = 0.8;
+const STAR_HALO_EVERY = 6;
+const STAR_HALO_RADIUS_MULT = 2.6;
+const STAR_HALO_ALPHA_MULT = 0.18;
+const STAR_EDGE_PAD_PX = 4;
+const STAR_SEED = 0x51ed270b;
 
 function css(hex: number): string {
   return new Color(hex).getStyle();
+}
+
+function cssAlpha(hex: number, alpha: number): string {
+  const r = (hex >> 16) & 255;
+  const g = (hex >> 8) & 255;
+  const b = hex & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function createLcg(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
 }
 
 function mask(luminance: number, alpha: number): string {
@@ -139,9 +170,46 @@ function createSkyGradientTexture(): CanvasTexture {
   const { canvas, ctx } = createCanvas(SKY_TEXTURE_WIDTH, SKY_TEXTURE_HEIGHT);
   const gradient = ctx.createLinearGradient(0, 0, 0, SKY_TEXTURE_HEIGHT);
   gradient.addColorStop(0, css(palette.bg0));
-  gradient.addColorStop(1, css(palette.bg1));
+  gradient.addColorStop(SKY_MID_STOP, css(palette.bg1));
+  gradient.addColorStop(1, css(palette.fog));
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, SKY_TEXTURE_WIDTH, SKY_TEXTURE_HEIGHT);
+
+  const horizonTop = SKY_TEXTURE_HEIGHT * SKY_HORIZON_START;
+  const horizonBottom = SKY_TEXTURE_HEIGHT * SKY_HORIZON_END;
+  const horizon = ctx.createLinearGradient(0, horizonTop, 0, horizonBottom);
+  horizon.addColorStop(0, cssAlpha(palette.skyHorizon, 0));
+  horizon.addColorStop(
+    SKY_HORIZON_PEAK,
+    cssAlpha(palette.skyHorizon, SKY_HORIZON_ALPHA),
+  );
+  horizon.addColorStop(1, cssAlpha(palette.skyHorizon, 0));
+  ctx.fillStyle = horizon;
+  ctx.fillRect(0, horizonTop, SKY_TEXTURE_WIDTH, horizonBottom - horizonTop);
+
+  const rand = createLcg(STAR_SEED);
+  for (let i = 0; i < tuning.skyStarCount; i += 1) {
+    const x =
+      STAR_EDGE_PAD_PX + rand() * (SKY_TEXTURE_WIDTH - STAR_EDGE_PAD_PX * 2);
+    const y =
+      SKY_TEXTURE_HEIGHT *
+      (STAR_BAND_BOTTOM_V -
+        rand() * rand() * (STAR_BAND_BOTTOM_V - STAR_BAND_TOP_V));
+    const radius =
+      STAR_MIN_RADIUS_PX + rand() * (STAR_MAX_RADIUS_PX - STAR_MIN_RADIUS_PX);
+    const alpha = STAR_MIN_ALPHA + rand() * (STAR_MAX_ALPHA - STAR_MIN_ALPHA);
+    if (i % STAR_HALO_EVERY === 0) {
+      ctx.fillStyle = cssAlpha(palette.star, alpha * STAR_HALO_ALPHA_MULT);
+      ctx.beginPath();
+      ctx.arc(x, y, radius * STAR_HALO_RADIUS_MULT, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = cssAlpha(palette.star, alpha);
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   const texture = new CanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
   return texture;
@@ -168,6 +236,7 @@ export class MaterialFactory {
   private readonly textures = new Map<TextureKey, CanvasTexture>();
   private readonly spriteMaterials = new Map<SpriteKind, SpriteMaterial>();
   private sky: MeshBasicMaterial | undefined;
+  private island: MeshBasicMaterial | undefined;
   private motePoints: PointsMaterial | undefined;
 
   material(key: StandardMaterialKey): MeshStandardMaterial {
@@ -246,6 +315,16 @@ export class MaterialFactory {
     return this.sky;
   }
 
+  distantIslandMaterial(): MeshBasicMaterial {
+    if (!this.island) {
+      this.island = new MeshBasicMaterial({
+        color: palette.island,
+        fog: false,
+      });
+    }
+    return this.island;
+  }
+
   gridTexture(): CanvasTexture {
     return this.texture("grid");
   }
@@ -277,6 +356,8 @@ export class MaterialFactory {
     this.textures.clear();
     this.sky?.dispose();
     this.sky = undefined;
+    this.island?.dispose();
+    this.island = undefined;
     this.motePoints?.dispose();
     this.motePoints = undefined;
   }

@@ -2,13 +2,19 @@ import type { BufferGeometry } from "three";
 import {
   ConeGeometry,
   CylinderGeometry,
+  DodecahedronGeometry,
+  Euler,
   Group,
+  InstancedMesh,
+  Matrix4,
   Mesh,
   OctahedronGeometry,
   PlaneGeometry,
+  Quaternion,
   SphereGeometry,
   Sprite,
   TorusGeometry,
+  Vector3,
 } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
@@ -60,6 +66,16 @@ const EYE_WIDTH_SEGMENTS = 16;
 const EYE_HEIGHT_SEGMENTS = 12;
 const SKY_WIDTH_SEGMENTS = 32;
 const SKY_HEIGHT_SEGMENTS = 16;
+const ISLAND_BASE_X = 1.9;
+const ISLAND_BASE_Y = 0.6;
+const ISLAND_BASE_Z = 1.4;
+const ISLAND_ANGLE_JITTER = 0.55;
+const ISLAND_TILT_RAD = 0.24;
+const ISLAND_MIN_SCALE = 2.2;
+const ISLAND_MAX_SCALE = 6;
+const ISLAND_FLATTEN_MIN = 0.7;
+const ISLAND_FLATTEN_RANGE = 0.5;
+const ISLAND_SEED = 0x9e3779b9;
 
 function roundedBox(w: number, h: number, d: number): RoundedBoxGeometry {
   const radius = Math.min(EDGE_RADIUS, w / 2, h / 2, d / 2);
@@ -338,6 +354,54 @@ export class MeshFactory {
       this.materials.skyMaterial(),
     );
     mesh.name = "sky";
+    return mesh;
+  }
+
+  distantIslands(): InstancedMesh {
+    const geometry = new DodecahedronGeometry(1, 0);
+    geometry.scale(ISLAND_BASE_X, ISLAND_BASE_Y, ISLAND_BASE_Z);
+    const count = tuning.distantIslandCount;
+    const mesh = new InstancedMesh(
+      geometry,
+      this.materials.distantIslandMaterial(),
+      count,
+    );
+    const matrix = new Matrix4();
+    const quaternion = new Quaternion();
+    const euler = new Euler();
+    const position = new Vector3();
+    const scale = new Vector3();
+    let state = ISLAND_SEED;
+    const rand = (): number => {
+      state = (state * 1664525 + 1013904223) >>> 0;
+      return state / 0x100000000;
+    };
+    for (let i = 0; i < count; i += 1) {
+      const angle = ((i + rand() * ISLAND_ANGLE_JITTER) / count) * Math.PI * 2;
+      const radius =
+        tuning.distantIslandMinRadius +
+        rand() *
+          (tuning.distantIslandMaxRadius - tuning.distantIslandMinRadius);
+      position.set(
+        Math.cos(angle) * radius,
+        tuning.distantIslandMinY +
+          rand() * (tuning.distantIslandMaxY - tuning.distantIslandMinY),
+        Math.sin(angle) * radius,
+      );
+      euler.set(
+        (rand() - 0.5) * ISLAND_TILT_RAD,
+        rand() * Math.PI * 2,
+        (rand() - 0.5) * ISLAND_TILT_RAD,
+      );
+      quaternion.setFromEuler(euler);
+      const s =
+        ISLAND_MIN_SCALE + rand() * (ISLAND_MAX_SCALE - ISLAND_MIN_SCALE);
+      scale.set(s, s * (ISLAND_FLATTEN_MIN + rand() * ISLAND_FLATTEN_RANGE), s);
+      matrix.compose(position, quaternion, scale);
+      mesh.setMatrixAt(i, matrix);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.name = "distantIslands";
     return mesh;
   }
 

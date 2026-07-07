@@ -1,6 +1,10 @@
 export const palette = {
   bg0: 0x0e0f1a,
   bg1: 0x171a2b,
+  fog: 0x1a2635,
+  skyHorizon: 0x2b3457,
+  star: 0xc4d7ff,
+  island: 0x111527,
   terrain: 0x23263a,
   terrainTop: 0x2c3049,
   player: 0x14151f,

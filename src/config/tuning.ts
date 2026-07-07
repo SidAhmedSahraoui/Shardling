@@ -90,6 +90,14 @@ export const tuning = {
   moteCount: 40,
   moteDriftSpeed: 0.22,
 
+  skyStarCount: 320,
+  distantIslandCount: 14,
+  distantIslandMinRadius: 55,
+  distantIslandMaxRadius: 74,
+  distantIslandMinY: -16,
+  distantIslandMaxY: 8,
+  distantIslandDriftRadPerSec: 0.004,
+
   touchStickRadiusPx: 60,
   touchStickDeadZonePx: 20,
   touchJumpSizePx: 80,

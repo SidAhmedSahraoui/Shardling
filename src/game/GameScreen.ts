@@ -1,5 +1,5 @@
 import type { Collider, World } from "@dimforge/rapier3d-compat";
-import type { Mesh, Object3D } from "three";
+import type { InstancedMesh, Mesh, Object3D } from "three";
 import { DirectionalLight, FogExp2, HemisphereLight } from "three";
 
 import { lighting, palette } from "../config/palette";
@@ -80,6 +80,7 @@ export class GameScreen implements LoopHooks {
   private visuals: PlayerVisuals;
 
   private readonly dressing: Object3D[] = [];
+  private readonly islands: InstancedMesh;
   private readonly unsubs: (() => void)[] = [];
 
   private readonly velXZ = { x: 0, z: 0 };
@@ -132,7 +133,7 @@ export class GameScreen implements LoopHooks {
     this.meshes = new MeshFactory(opts.materials);
 
     const { scene, camera } = this.app;
-    scene.fog = new FogExp2(palette.bg1, tuning.fogDensity);
+    scene.fog = new FogExp2(palette.fog, tuning.fogDensity);
     const hemi = new HemisphereLight(
       lighting.hemiSky,
       lighting.hemiGround,
@@ -147,8 +148,10 @@ export class GameScreen implements LoopHooks {
       DIR_LIGHT_POSITION.z,
     );
     const sky = this.meshes.skyDome(SKY_RADIUS);
-    scene.add(hemi, dir, sky);
-    this.dressing.push(hemi, dir, sky);
+    const islands = this.meshes.distantIslands();
+    this.islands = islands;
+    scene.add(hemi, dir, sky, islands);
+    this.dressing.push(hemi, dir, sky, islands);
 
     this.world = createPhysicsWorld();
 
@@ -387,6 +390,9 @@ export class GameScreen implements LoopHooks {
     this.graybox?.update(frameDt, alpha);
     this.particles.update(frameDt);
     this.moteField?.update(frameDt, !this.reduceMotionFlag);
+    if (!this.reduceMotionFlag && !this.noJuice) {
+      this.islands.rotation.y += frameDt * tuning.distantIslandDriftRadPerSec;
+    }
     if (this.flashAge < tuning.portalFlashMs / 1000) {
       this.flashAge += frameDt;
       const u = Math.min(1, this.flashAge / (tuning.portalFlashMs / 1000));
@@ -433,6 +439,10 @@ export class GameScreen implements LoopHooks {
     const { scene } = this.app;
     for (const obj of this.dressing) {
       scene.remove(obj);
+      const instanced = obj as InstancedMesh;
+      if (instanced.isInstancedMesh) {
+        instanced.dispose();
+      }
       const mesh = obj as Mesh;
       if (mesh.isMesh) {
         mesh.geometry.dispose();
