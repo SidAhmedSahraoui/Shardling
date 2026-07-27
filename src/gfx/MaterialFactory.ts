@@ -65,6 +65,7 @@ const RING_OUTER_STOP = 0.92;
 const SKY_TEXTURE_WIDTH = 2048;
 const SKY_TEXTURE_HEIGHT = 1024;
 const SKY_MID_STOP = 0.5;
+const SKY_NADIR_FOG_STOP = 0.72;
 const SKY_HORIZON_START = 0.36;
 const SKY_HORIZON_PEAK = 0.5;
 const SKY_HORIZON_END = 0.64;
@@ -80,6 +81,18 @@ const STAR_HALO_RADIUS_MULT = 2.6;
 const STAR_HALO_ALPHA_MULT = 0.18;
 const STAR_EDGE_PAD_PX = 4;
 const STAR_SEED = 0x51ed270b;
+const NEBULAE: readonly {
+  u: number;
+  v: number;
+  radiusU: number;
+  squashV: number;
+  alpha: number;
+}[] = [
+  { u: 0.22, v: 0.2, radiusU: 0.16, squashV: 0.45, alpha: 0.06 },
+  { u: 0.68, v: 0.3, radiusU: 0.2, squashV: 0.4, alpha: 0.05 },
+  { u: 0.46, v: 0.12, radiusU: 0.13, squashV: 0.5, alpha: 0.045 },
+  { u: 0.88, v: 0.16, radiusU: 0.11, squashV: 0.45, alpha: 0.04 },
+];
 
 function css(hex: number): string {
   return new Color(hex).getStyle();
@@ -171,7 +184,8 @@ function createSkyGradientTexture(): CanvasTexture {
   const gradient = ctx.createLinearGradient(0, 0, 0, SKY_TEXTURE_HEIGHT);
   gradient.addColorStop(0, css(palette.bg0));
   gradient.addColorStop(SKY_MID_STOP, css(palette.bg1));
-  gradient.addColorStop(1, css(palette.fog));
+  gradient.addColorStop(SKY_NADIR_FOG_STOP, css(palette.fog));
+  gradient.addColorStop(1, css(palette.abyss));
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, SKY_TEXTURE_WIDTH, SKY_TEXTURE_HEIGHT);
 
@@ -186,6 +200,24 @@ function createSkyGradientTexture(): CanvasTexture {
   horizon.addColorStop(1, cssAlpha(palette.skyHorizon, 0));
   ctx.fillStyle = horizon;
   ctx.fillRect(0, horizonTop, SKY_TEXTURE_WIDTH, horizonBottom - horizonTop);
+
+  const violet = palette.worldAccents[1] ?? palette.portal;
+  const nebulaColors = [palette.portal, violet, palette.portal, violet];
+  NEBULAE.forEach((blob, index) => {
+    const cx = SKY_TEXTURE_WIDTH * blob.u;
+    const cy = SKY_TEXTURE_HEIGHT * blob.v;
+    const radius = SKY_TEXTURE_WIDTH * blob.radiusU;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(1, blob.squashV);
+    const cloud = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+    const color = nebulaColors[index % nebulaColors.length] ?? palette.portal;
+    cloud.addColorStop(0, cssAlpha(color, blob.alpha));
+    cloud.addColorStop(1, cssAlpha(color, 0));
+    ctx.fillStyle = cloud;
+    ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
+    ctx.restore();
+  });
 
   const rand = createLcg(STAR_SEED);
   for (let i = 0; i < tuning.skyStarCount; i += 1) {

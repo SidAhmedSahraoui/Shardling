@@ -81,6 +81,7 @@ export class GameScreen implements LoopHooks {
 
   private readonly dressing: Object3D[] = [];
   private readonly islands: InstancedMesh;
+  private readonly midIslands: InstancedMesh;
   private readonly unsubs: (() => void)[] = [];
 
   private readonly velXZ = { x: 0, z: 0 };
@@ -98,6 +99,13 @@ export class GameScreen implements LoopHooks {
   private pendingPortalEnter = false;
   private pendingBounce: Bouncer | null = null;
 
+  private timerStarted = false;
+  private readonly lastGrounded = { x: 0, y: 0, z: 0 };
+  private hasGrounded = false;
+  private readonly checkpoint = { x: 0, y: 0, z: 0 };
+  private hasCheckpoint = false;
+  private readonly checkpointProbe = { x: 0, y: 0, z: 0 };
+
   private readonly onOverlap = (other: Collider): void => {
     const tag = this.colliderTags.get(other.handle);
     if (!tag) {
@@ -112,6 +120,12 @@ export class GameScreen implements LoopHooks {
           this.particles.spawnCollectSparks(at.x, at.y, at.z);
         }
         this.levelRunner?.notifyShardCollected();
+        if (this.hasGrounded) {
+          this.checkpoint.x = this.lastGrounded.x;
+          this.checkpoint.y = this.lastGrounded.y;
+          this.checkpoint.z = this.lastGrounded.z;
+          this.hasCheckpoint = true;
+        }
       }
     } else if (tag.kind === "hazard") {
       this.pendingDeath = "hazard";
@@ -147,11 +161,18 @@ export class GameScreen implements LoopHooks {
       DIR_LIGHT_POSITION.y,
       DIR_LIGHT_POSITION.z,
     );
+    const fill = new HemisphereLight(
+      palette.skyHorizon,
+      palette.fog,
+      tuning.fillLightIntensity,
+    );
     const sky = this.meshes.skyDome(SKY_RADIUS);
     const islands = this.meshes.distantIslands();
+    const midIslands = this.meshes.midIslands();
     this.islands = islands;
-    scene.add(hemi, dir, sky, islands);
-    this.dressing.push(hemi, dir, sky, islands);
+    this.midIslands = midIslands;
+    scene.add(hemi, fill, dir, sky, islands, midIslands);
+    this.dressing.push(hemi, fill, dir, sky, islands, midIslands);
 
     this.world = createPhysicsWorld();
 
@@ -311,18 +332,26 @@ export class GameScreen implements LoopHooks {
           if (this.destroyed) {
             return;
           }
-          this.resetWorldToSpawn();
+          this.resetWorldToSpawn(true);
           this.dyingFlag = false;
           if (!this.pausedFlag && !this.completedFrozen) {
             this.input.enable();
           }
         });
       }
-      this.levelRunner?.tick(dt);
+      if (this.timerStarted) {
+        this.levelRunner?.tick(dt);
+      }
       return;
     }
 
     const snap = this.input.sample(dt);
+    if (
+      !this.timerStarted &&
+      (snap.moveVec.x !== 0 || snap.moveVec.z !== 0 || snap.jumpPressed)
+    ) {
+      this.timerStarted = true;
+    }
     if (snap.restartPressed) {
       this.restartLevel();
     }
@@ -336,6 +365,13 @@ export class GameScreen implements LoopHooks {
     this.player.step(snap, dt);
     this.world.step();
     this.player.postStep();
+    if (this.player.grounded) {
+      const pos = this.player.position;
+      this.lastGrounded.x = pos.x;
+      this.lastGrounded.y = pos.y;
+      this.lastGrounded.z = pos.z;
+      this.hasGrounded = true;
+    }
     this.audio.setRolling(this.player.groundSpeed01);
 
     this.world.intersectionPairsWith(this.player.collider, this.onOverlap);
@@ -377,7 +413,9 @@ export class GameScreen implements LoopHooks {
       this.pendingDeath = null;
     }
 
-    this.levelRunner?.tick(dt);
+    if (this.timerStarted) {
+      this.levelRunner?.tick(dt);
+    }
   }
 
   render(alpha: number, frameDt: number): void {
@@ -392,6 +430,7 @@ export class GameScreen implements LoopHooks {
     this.moteField?.update(frameDt, !this.reduceMotionFlag);
     if (!this.reduceMotionFlag && !this.noJuice) {
       this.islands.rotation.y += frameDt * tuning.distantIslandDriftRadPerSec;
+      this.midIslands.rotation.y -= frameDt * tuning.midIslandDriftRadPerSec;
     }
     if (this.flashAge < tuning.portalFlashMs / 1000) {
       this.flashAge += frameDt;
@@ -474,21 +513,38 @@ export class GameScreen implements LoopHooks {
     runner.notifyPortalEntered();
   }
 
-  private resetWorldToSpawn(): void {
-    if (this.builtLevel) {
+  private resetWorldToSpawn(keepProgress = false): void {
+    const keep = keepProgress && this.builtLevel !== null;
+    if (this.builtLevel && !keep) {
       this.builtLevel.resetShards();
-      this.builtLevel.resetDynamic();
       this.builtLevel.portal.setActive(false);
       this.audio.setHum(false);
       this.levelRunner?.notifyShardsReset();
     }
+    this.builtLevel?.resetDynamic();
     this.graybox?.resetDynamic();
     this.pendingBounce = null;
     this.particles.clear();
     this.flashAge = Infinity;
     this.hemi.intensity = this.hemiBaseIntensity;
-    this.player.respawn();
-    this.rig.snapTo(this.spawn);
+    if (!keep) {
+      this.hasCheckpoint = false;
+      this.hasGrounded = false;
+      this.timerStarted = false;
+    }
+    const at = keep && this.checkpointIsSafe() ? this.checkpoint : this.spawn;
+    this.player.respawn(at);
+    this.rig.snapTo(at);
+  }
+
+  private checkpointIsSafe(): boolean {
+    if (!this.hasCheckpoint) {
+      return false;
+    }
+    this.checkpointProbe.x = this.checkpoint.x;
+    this.checkpointProbe.y = this.checkpoint.y + tuning.ballRadius;
+    this.checkpointProbe.z = this.checkpoint.z;
+    return castShadowGround(this.world, this.checkpointProbe) !== null;
   }
 
   private buildPlayer(): Player {

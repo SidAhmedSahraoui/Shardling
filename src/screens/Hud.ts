@@ -1,10 +1,23 @@
+import { tuning } from "../config/tuning";
 import type { EventBus } from "../core/EventBus";
 import { el, ListenerBag } from "../ui/dom";
 import { formatTimeMs } from "../ui/format";
 import { strings } from "../ui/strings";
-import { injectStyles, removeStyles, uiClass } from "../ui/theme";
+import {
+  cssColor,
+  cssColorAlpha,
+  injectStyles,
+  removeStyles,
+  uiClass,
+} from "../ui/theme";
 
 const REFRESH_INTERVAL_MS = 100;
+
+export interface HudIntro {
+  title: string;
+  worldTag: string;
+  accent: number;
+}
 
 export interface HudOptions {
   bus: EventBus;
@@ -13,6 +26,7 @@ export interface HudOptions {
   shardTotal: number;
   reduceMotion: () => boolean;
   onPause: () => void;
+  intro?: HudIntro;
   root?: HTMLElement;
 }
 
@@ -35,6 +49,9 @@ export class Hud {
   private readonly bag = new ListenerBag();
   private readonly unsubscribes: (() => void)[] = [];
   private readonly intervalId: number;
+
+  private readonly introEl: HTMLElement | null = null;
+  private introTimeout: number | null = null;
 
   private shardCount = 0;
   private destroyed = false;
@@ -84,6 +101,23 @@ export class Hud {
     right.append(deathsStat, pause);
 
     this.root.append(left, center, right);
+
+    if (opts.intro) {
+      const intro = el("div", uiClass.levelIntro);
+      const tag = el("span", uiClass.levelIntroTag, opts.intro.worldTag);
+      tag.style.color = cssColor(opts.intro.accent);
+      const name = el("h2", uiClass.levelIntroName, opts.intro.title);
+      name.style.textShadow = `0 0 24px ${cssColorAlpha(opts.intro.accent, 0.45)}`;
+      intro.append(tag, name);
+      this.root.appendChild(intro);
+      this.introEl = intro;
+      this.unsubscribes.push(
+        this.bus.on("level:loaded", () => {
+          this.showIntro();
+        }),
+      );
+    }
+
     this.anchor.appendChild(this.root);
 
     this.bag.add(pause, "click", () => {
@@ -98,8 +132,6 @@ export class Hud {
         this.punchShards();
       }),
       this.bus.on("player:died", () => {
-        this.shardCount = 0;
-        this.renderShards();
         this.refresh();
       }),
       this.bus.on("level:loaded", () => {
@@ -117,6 +149,21 @@ export class Hud {
 
     void this.root.offsetWidth;
     this.root.classList.add(uiClass.hudVisible);
+    this.showIntro();
+  }
+
+  private showIntro(): void {
+    if (!this.introEl || this.destroyed) {
+      return;
+    }
+    if (this.introTimeout !== null) {
+      window.clearTimeout(this.introTimeout);
+    }
+    this.introEl.classList.add(uiClass.levelIntroVisible);
+    this.introTimeout = window.setTimeout(() => {
+      this.introTimeout = null;
+      this.introEl?.classList.remove(uiClass.levelIntroVisible);
+    }, tuning.levelIntroHoldMs);
   }
 
   destroy(): void {
@@ -125,6 +172,10 @@ export class Hud {
     }
     this.destroyed = true;
     window.clearInterval(this.intervalId);
+    if (this.introTimeout !== null) {
+      window.clearTimeout(this.introTimeout);
+      this.introTimeout = null;
+    }
     this.bag.dispose();
     for (const unsubscribe of this.unsubscribes) {
       unsubscribe();

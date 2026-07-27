@@ -3,7 +3,7 @@ import type { EventBus } from "../core/EventBus";
 import type { LevelRecord, SaveManager } from "../core/SaveManager";
 import { isAllLevelsUnlocked } from "../debug/flags";
 import type { LevelEntry } from "../levels/registry";
-import { isUnlocked, levels } from "../levels/registry";
+import { firstIncompleteLevel, isUnlocked, levels } from "../levels/registry";
 import { cycleFocus, el, ListenerBag } from "../ui/dom";
 import { formatTimeMs } from "../ui/format";
 import { strings } from "../ui/strings";
@@ -19,6 +19,7 @@ function sectionHeader(
   worldName: string,
   accent: number,
   muted: boolean,
+  progress: string,
 ): HTMLElement {
   const header = el("header");
   Object.assign(header.style, {
@@ -52,6 +53,18 @@ function sectionHeader(
   });
 
   header.append(tag, name);
+  if (progress !== "") {
+    const count = el("span", "", progress);
+    Object.assign(count.style, {
+      marginInlineStart: "auto",
+      fontSize: "14px",
+      fontWeight: "600",
+      fontVariantNumeric: "tabular-nums",
+      letterSpacing: "0.06em",
+      color: textDim,
+    });
+    header.appendChild(count);
+  }
   return header;
 }
 
@@ -61,8 +74,9 @@ function levelTile(
   accent: number,
   unlocked: boolean,
   record: LevelRecord | undefined,
+  isContinue: boolean,
 ): HTMLButtonElement {
-  const tile = el("button", uiClass.btn);
+  const tile = el("button", `${uiClass.btn} ${uiClass.tile}`);
   tile.type = "button";
   Object.assign(tile.style, {
     minWidth: "0",
@@ -93,6 +107,28 @@ function levelTile(
     number,
     el("span", "", strings.levelNames[entry.id] ?? entry.name),
   );
+  if (record?.completed === true) {
+    const done = el("span", uiClass.tileDone, "\u2713");
+    Object.assign(done.style, {
+      marginInlineStart: "auto",
+      color: cssColor(accent),
+      textShadow: `0 0 10px ${cssColorAlpha(accent, 0.5)}`,
+    });
+    nameRow.appendChild(done);
+    nameRow.style.width = "100%";
+  } else if (isContinue) {
+    const chip = el("span", uiClass.tileChip, strings.levelSelect.continueChip);
+    Object.assign(chip.style, {
+      marginInlineStart: "auto",
+      color: cssColor(accent),
+      border: `1px solid ${cssColorAlpha(accent, 0.55)}`,
+      background: cssColorAlpha(accent, 0.12),
+    });
+    nameRow.appendChild(chip);
+    nameRow.style.width = "100%";
+    tile.classList.add(uiClass.btnPrimary);
+    tile.style.borderColor = cssColorAlpha(accent, 0.75);
+  }
   tile.appendChild(nameRow);
 
   const meta = el("div");
@@ -167,6 +203,7 @@ export class LevelSelectScreen implements Screen {
     });
 
     const heading = el("h1", uiClass.heading, strings.levelSelect.title);
+    const continueId = firstIncompleteLevel(save)?.id ?? null;
 
     const back = el("button", uiClass.btn, strings.levelSelect.back);
     back.type = "button";
@@ -180,6 +217,10 @@ export class LevelSelectScreen implements Screen {
         .map((entry, index) => ({ entry, playNumber: index + 1 }))
         .filter(({ entry }) => entry.world === worldNumber);
       const empty = worldLevels.length === 0;
+      const doneCount = worldLevels.filter(
+        ({ entry }) => save.getLevel(entry.id)?.completed === true,
+      ).length;
+      const progress = empty ? "" : `${doneCount} / ${worldLevels.length}`;
 
       const section = el("section", uiClass.panel);
       Object.assign(section.style, {
@@ -187,7 +228,9 @@ export class LevelSelectScreen implements Screen {
         gap: "14px",
         borderColor: cssColorAlpha(accent, empty ? 0.1 : 0.28),
       });
-      section.appendChild(sectionHeader(worldNumber, worldName, accent, empty));
+      section.appendChild(
+        sectionHeader(worldNumber, worldName, accent, empty, progress),
+      );
 
       if (empty) {
         const placeholder = el("p", "", strings.levelSelect.comingSoon);
@@ -214,6 +257,7 @@ export class LevelSelectScreen implements Screen {
             accent,
             unlocked,
             save.getLevel(entry.id),
+            entry.id === continueId,
           );
           if (unlocked) {
             this.bag.add(tile, "click", () => {
@@ -230,7 +274,7 @@ export class LevelSelectScreen implements Screen {
       sections.push(section);
     });
 
-    wrapper.append(heading, ...sections, back);
+    wrapper.append(heading, back, ...sections);
     this.el.appendChild(wrapper);
 
     this.bag.add(back, "click", () => {

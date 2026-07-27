@@ -1,4 +1,4 @@
-import type { BufferGeometry } from "three";
+import type { BufferGeometry, Material } from "three";
 import {
   ConeGeometry,
   CylinderGeometry,
@@ -76,6 +76,9 @@ const ISLAND_MAX_SCALE = 6;
 const ISLAND_FLATTEN_MIN = 0.7;
 const ISLAND_FLATTEN_RANGE = 0.5;
 const ISLAND_SEED = 0x9e3779b9;
+const MID_ISLAND_SEED = 0x2545f491;
+const MID_ISLAND_MIN_SCALE = 1.1;
+const MID_ISLAND_MAX_SCALE = 2.6;
 
 function roundedBox(w: number, h: number, d: number): RoundedBoxGeometry {
   const radius = Math.min(EDGE_RADIUS, w / 2, h / 2, d / 2);
@@ -358,34 +361,68 @@ export class MeshFactory {
   }
 
   distantIslands(): InstancedMesh {
+    return this.islandRing({
+      material: this.materials.distantIslandMaterial(),
+      count: tuning.distantIslandCount,
+      minRadius: tuning.distantIslandMinRadius,
+      maxRadius: tuning.distantIslandMaxRadius,
+      minY: tuning.distantIslandMinY,
+      maxY: tuning.distantIslandMaxY,
+      minScale: ISLAND_MIN_SCALE,
+      maxScale: ISLAND_MAX_SCALE,
+      seed: ISLAND_SEED,
+      name: "distantIslands",
+    });
+  }
+
+  midIslands(): InstancedMesh {
+    return this.islandRing({
+      material: this.materials.material("terrain"),
+      count: tuning.midIslandCount,
+      minRadius: tuning.midIslandMinRadius,
+      maxRadius: tuning.midIslandMaxRadius,
+      minY: tuning.midIslandMinY,
+      maxY: tuning.midIslandMaxY,
+      minScale: MID_ISLAND_MIN_SCALE,
+      maxScale: MID_ISLAND_MAX_SCALE,
+      seed: MID_ISLAND_SEED,
+      name: "midIslands",
+    });
+  }
+
+  private islandRing(opts: {
+    material: Material;
+    count: number;
+    minRadius: number;
+    maxRadius: number;
+    minY: number;
+    maxY: number;
+    minScale: number;
+    maxScale: number;
+    seed: number;
+    name: string;
+  }): InstancedMesh {
     const geometry = new DodecahedronGeometry(1, 0);
     geometry.scale(ISLAND_BASE_X, ISLAND_BASE_Y, ISLAND_BASE_Z);
-    const count = tuning.distantIslandCount;
-    const mesh = new InstancedMesh(
-      geometry,
-      this.materials.distantIslandMaterial(),
-      count,
-    );
+    const mesh = new InstancedMesh(geometry, opts.material, opts.count);
     const matrix = new Matrix4();
     const quaternion = new Quaternion();
     const euler = new Euler();
     const position = new Vector3();
     const scale = new Vector3();
-    let state = ISLAND_SEED;
+    let state = opts.seed;
     const rand = (): number => {
       state = (state * 1664525 + 1013904223) >>> 0;
       return state / 0x100000000;
     };
-    for (let i = 0; i < count; i += 1) {
-      const angle = ((i + rand() * ISLAND_ANGLE_JITTER) / count) * Math.PI * 2;
+    for (let i = 0; i < opts.count; i += 1) {
+      const angle =
+        ((i + rand() * ISLAND_ANGLE_JITTER) / opts.count) * Math.PI * 2;
       const radius =
-        tuning.distantIslandMinRadius +
-        rand() *
-          (tuning.distantIslandMaxRadius - tuning.distantIslandMinRadius);
+        opts.minRadius + rand() * (opts.maxRadius - opts.minRadius);
       position.set(
         Math.cos(angle) * radius,
-        tuning.distantIslandMinY +
-          rand() * (tuning.distantIslandMaxY - tuning.distantIslandMinY),
+        opts.minY + rand() * (opts.maxY - opts.minY),
         Math.sin(angle) * radius,
       );
       euler.set(
@@ -394,14 +431,13 @@ export class MeshFactory {
         (rand() - 0.5) * ISLAND_TILT_RAD,
       );
       quaternion.setFromEuler(euler);
-      const s =
-        ISLAND_MIN_SCALE + rand() * (ISLAND_MAX_SCALE - ISLAND_MIN_SCALE);
+      const s = opts.minScale + rand() * (opts.maxScale - opts.minScale);
       scale.set(s, s * (ISLAND_FLATTEN_MIN + rand() * ISLAND_FLATTEN_RANGE), s);
       matrix.compose(position, quaternion, scale);
       mesh.setMatrixAt(i, matrix);
     }
     mesh.instanceMatrix.needsUpdate = true;
-    mesh.name = "distantIslands";
+    mesh.name = opts.name;
     return mesh;
   }
 

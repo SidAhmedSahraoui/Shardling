@@ -1,6 +1,11 @@
 import type { RigidBody, World } from "@dimforge/rapier3d-compat";
-import type { BufferGeometry, Material, Scene } from "three";
-import { Group, Mesh } from "three";
+import type {
+  BufferGeometry,
+  Material,
+  MeshStandardMaterial,
+  Scene,
+} from "three";
+import { BufferAttribute, Group, Mesh } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 import { tuning } from "../config/tuning";
@@ -25,6 +30,36 @@ import { Shard } from "./Shard";
 const MAX_TERRAIN_MESHES = 3;
 
 const RAMP_THICKNESS = 0.5;
+
+const SHADE_BOTTOM = 0.5;
+const SHADE_TOP = 1;
+const SHADE_UP_BONUS = 0.05;
+const SHADE_DOWN_FACE = 0.4;
+
+function bakeTerrainShade(
+  geometry: BufferGeometry,
+  minY: number,
+  height: number,
+): void {
+  const position = geometry.getAttribute("position");
+  const normal = geometry.getAttribute("normal");
+  const colors = new Float32Array(position.count * 3);
+  const span = Math.max(height, 0.001);
+  for (let i = 0; i < position.count; i += 1) {
+    const t = Math.min(1, Math.max(0, (position.getY(i) - minY) / span));
+    const ny = normal.getY(i);
+    let shade = SHADE_BOTTOM + (SHADE_TOP - SHADE_BOTTOM) * t;
+    if (ny > 0.5) {
+      shade = Math.min(1, shade + SHADE_UP_BONUS);
+    } else if (ny < -0.5) {
+      shade = SHADE_DOWN_FACE;
+    }
+    colors[i * 3] = shade;
+    colors[i * 3 + 1] = shade;
+    colors[i * 3 + 2] = shade;
+  }
+  geometry.setAttribute("color", new BufferAttribute(colors, 3));
+}
 
 type RampPiece = Extract<TerrainPiece, { type: "ramp" }>;
 
@@ -95,6 +130,7 @@ export function buildLevel(opts: BuildLevelOptions): BuiltLevel {
         throw new Error("EntityFactory: multi-material terrain mesh");
       }
       mesh.geometry.applyMatrix4(mesh.matrixWorld);
+      bakeTerrainShade(mesh.geometry, piece.y, piece.h);
       let bucket = buckets.get(material);
       if (!bucket) {
         bucket = [];
@@ -116,6 +152,7 @@ export function buildLevel(opts: BuildLevelOptions): BuiltLevel {
 
   const root = new Group();
   root.name = "terrain";
+  const shadedMaterials: Material[] = [];
   for (const [material, parts] of buckets) {
     const merged = mergeGeometries(parts);
     for (const part of parts) {
@@ -126,7 +163,10 @@ export function buildLevel(opts: BuildLevelOptions): BuiltLevel {
         "EntityFactory: terrain merge failed (attribute mismatch)",
       );
     }
-    const mesh = new Mesh(merged, material);
+    const shaded = (material as MeshStandardMaterial).clone();
+    shaded.vertexColors = true;
+    shadedMaterials.push(shaded);
+    const mesh = new Mesh(merged, shaded);
     mesh.name = "terrainMerged";
     root.add(mesh);
   }
@@ -323,6 +363,10 @@ export function buildLevel(opts: BuildLevelOptions): BuiltLevel {
           mesh.geometry.dispose();
         }
       });
+      for (const material of shadedMaterials) {
+        material.dispose();
+      }
+      shadedMaterials.length = 0;
       colliderTags.clear();
       crumbleByHandle.clear();
       platformByHandle.clear();

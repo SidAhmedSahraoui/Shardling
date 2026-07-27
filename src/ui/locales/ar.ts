@@ -47,6 +47,7 @@ export const ar: Strings = {
     locked: "مقفل",
     best: "الأفضل",
     deaths: "الوفيات",
+    continueChip: "واصل",
   },
   complete: {
     title: "اكتمل المستوى",

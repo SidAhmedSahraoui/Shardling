@@ -2,7 +2,7 @@ import type { EventBus } from "../core/EventBus";
 import { cycleFocus, el, ListenerBag } from "../ui/dom";
 import { formatTimeMs } from "../ui/format";
 import { strings } from "../ui/strings";
-import { uiClass, uiEnter } from "../ui/theme";
+import { cssColor, cssColorAlpha, uiClass, uiEnter } from "../ui/theme";
 import type { Screen } from "./ScreenManager";
 
 export interface LevelCompleteResult {
@@ -16,6 +16,8 @@ export interface LevelCompleteResult {
 export interface LevelCompleteScreenOptions {
   bus: EventBus;
   result: LevelCompleteResult;
+  levelTitle?: string;
+  accent?: number;
   onNext: () => void;
   onReplay: () => void;
   onMenu: () => void;
@@ -49,6 +51,22 @@ export class LevelCompleteScreen implements Screen {
     this.el = el("div", uiClass.screen);
 
     const heading = el("h1", uiClass.heading, strings.complete.title);
+
+    let subtitle: HTMLElement | null = null;
+    if (opts.levelTitle !== undefined) {
+      subtitle = el("p", "", opts.levelTitle);
+      const accent = opts.accent;
+      Object.assign(subtitle.style, {
+        margin: "-16px 0 0",
+        fontSize: "17px",
+        fontWeight: "600",
+        letterSpacing: "0.08em",
+      });
+      if (accent !== undefined) {
+        subtitle.style.color = cssColor(accent);
+        subtitle.style.textShadow = `0 0 14px ${cssColorAlpha(accent, 0.4)}`;
+      }
+    }
 
     const time = statRow(strings.complete.time, formatTimeMs(result.timeMs));
     const deaths = statRow(strings.complete.deaths, String(result.deaths));
@@ -93,9 +111,16 @@ export class LevelCompleteScreen implements Screen {
     const actions = el("div", uiClass.menuActions);
     actions.append(...buttons);
 
-    this.el.append(heading, panel, actions);
+    if (subtitle !== null) {
+      this.el.append(heading, subtitle, panel, actions);
+    } else {
+      this.el.append(heading, panel, actions);
+    }
 
-    this.entranceEls = [heading, time.row, deaths.row, best.row, ...buttons];
+    this.entranceEls =
+      subtitle !== null
+        ? [heading, subtitle, time.row, deaths.row, best.row, ...buttons]
+        : [heading, time.row, deaths.row, best.row, ...buttons];
     this.badgeDelayMs =
       this.entranceEls.indexOf(best.row) * uiEnter.staggerMs +
       uiEnter.durationMs;

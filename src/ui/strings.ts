@@ -45,6 +45,7 @@ export interface Strings {
     locked: string;
     best: string;
     deaths: string;
+    continueChip: string;
   };
   complete: {
     title: string;
@@ -131,6 +132,7 @@ export const en: Strings = {
     locked: "Locked",
     best: "Best",
     deaths: "Deaths",
+    continueChip: "Continue",
   },
   complete: {
     title: "Level complete",

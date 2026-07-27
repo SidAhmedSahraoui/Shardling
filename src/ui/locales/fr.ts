@@ -52,6 +52,7 @@ export const fr: Strings = {
     locked: "Verrouillé",
     best: "Record",
     deaths: "Morts",
+    continueChip: "Continuer",
   },
   complete: {
     title: "Niveau terminé",

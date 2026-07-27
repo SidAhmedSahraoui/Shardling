@@ -59,15 +59,24 @@ export function buildShowcase(
   const hemi = new HemisphereLight(
     lighting.hemiSky,
     lighting.hemiGround,
-    tuning.hemiIntensity,
+    tuning.hemiIntensity * tuning.showcaseLightMult,
   );
-  const dir = new DirectionalLight(lighting.directional, tuning.dirIntensity);
+  const fill = new HemisphereLight(
+    palette.skyHorizon,
+    palette.fog,
+    tuning.fillLightIntensity * tuning.showcaseLightMult,
+  );
+  const dir = new DirectionalLight(
+    lighting.directional,
+    tuning.dirIntensity * tuning.showcaseLightMult,
+  );
   dir.position.set(5, 10, 4);
-  scene.add(hemi, dir);
-  roots.push(hemi, dir);
+  scene.add(hemi, fill, dir);
+  roots.push(hemi, fill, dir);
 
   add(meshes.skyDome(80), 0, 0, 0);
   const islands = add(meshes.distantIslands(), 0, 0, 0);
+  const midIslands = add(meshes.midIslands(), 0, 0, 0);
 
   add(meshes.platform(14, 1, 10), 0, -0.5, 0);
   add(meshes.ramp(3, 1.5, 2.5, "+x"), -4.5, 0.75, -2.5);
@@ -161,6 +170,7 @@ export function buildShowcase(
         }
         orbitRad += (frameDt * (Math.PI * 2)) / ORBIT_PERIOD_SEC;
         islands.rotation.y += frameDt * tuning.distantIslandDriftRadPerSec;
+        midIslands.rotation.y -= frameDt * tuning.midIslandDriftRadPerSec;
       }
       placeCamera();
 

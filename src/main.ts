@@ -1,5 +1,6 @@
 import RAPIER from "@dimforge/rapier3d-compat";
 
+import { palette } from "./config/palette";
 import { App } from "./core/App";
 import { AudioSynth } from "./core/AudioSynth";
 import type { DeviceProfile } from "./core/Device";
@@ -41,6 +42,7 @@ import { ControlHints } from "./ui/ControlHints";
 import { detectLocale, isLocale, setLocale } from "./ui/i18n";
 import { installFavicon } from "./ui/logo";
 import { OrientationHint } from "./ui/OrientationHint";
+import { strings } from "./ui/strings";
 import { TouchControls } from "./ui/TouchControls";
 
 declare global {
@@ -91,8 +93,10 @@ setLocale(
 );
 
 let cachedSettings: Settings = save.getSettings();
+app.setReduceMotion(cachedSettings.reduceMotion);
 bus.on("settings:changed", ({ settings }) => {
   cachedSettings = settings;
+  app.setReduceMotion(settings.reduceMotion);
 });
 
 const audio = new AudioSynth();
@@ -244,6 +248,11 @@ function startSession(entry: LevelEntry | null): void {
       shardTotal: sessionEntry.data.shards.length,
       reduceMotion: () => save.getSettings().reduceMotion,
       onPause: pauseGame,
+      intro: {
+        title: strings.levelNames[sessionEntry.id] ?? sessionEntry.name,
+        worldTag: `${strings.levelSelect.worldPrefix}${sessionEntry.world}`,
+        accent: palette.worldAccents[sessionEntry.world - 1] ?? palette.eye,
+      },
       root: uiRoot,
     });
     const hintKind = hintKindFor(sessionEntry);
@@ -340,6 +349,8 @@ function onLevelComplete(result: LevelResult): void {
   void screens.show(
     new LevelCompleteScreen({
       bus,
+      levelTitle: strings.levelNames[entry.id] ?? entry.name,
+      accent: palette.worldAccents[entry.world - 1] ?? palette.eye,
       result: {
         timeMs: result.timeMs,
         deaths: result.deaths,

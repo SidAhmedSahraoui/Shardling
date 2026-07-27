@@ -229,9 +229,10 @@ export class Player {
     );
   }
 
-  respawn(): void {
+  respawn(at?: { x: number; y: number; z: number }): void {
+    const point = at ?? this.spawn;
     removeBody(this.world, this.body);
-    [this.body, this.ballCollider] = this.createBody();
+    [this.body, this.ballCollider] = this.createBody(point);
     this.machine.reset();
     this.groundedFlag = false;
     this.groundHandle = null;
@@ -241,7 +242,7 @@ export class Player {
     this.velOut.x = 0;
     this.velOut.y = 0;
     this.velOut.z = 0;
-    this.prevPos.set(this.spawn.x, this.spawn.y, this.spawn.z);
+    this.prevPos.set(point.x, point.y, point.z);
     this.currPos.copy(this.prevPos);
     this.prevRot.identity();
     this.currRot.identity();
@@ -260,10 +261,12 @@ export class Player {
     });
   }
 
-  private createBody(): [RigidBody, Collider] {
+  private createBody(
+    at: { x: number; y: number; z: number } = this.spawn,
+  ): [RigidBody, Collider] {
     const body = this.world.createRigidBody(
       RigidBodyDesc.dynamic()
-        .setTranslation(this.spawn.x, this.spawn.y, this.spawn.z)
+        .setTranslation(at.x, at.y, at.z)
         .setCcdEnabled(true)
         .setLinearDamping(tuning.linearDamping)
         .setAngularDamping(tuning.angularDamping),

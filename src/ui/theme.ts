@@ -91,6 +91,13 @@ export const uiClass = {
   hintKeys: "sg-hint-keys",
   hintLabel: "sg-hint-label",
   kbd: "sg-kbd",
+  levelIntro: "sg-level-intro",
+  levelIntroVisible: "sg-level-intro--visible",
+  levelIntroTag: "sg-level-intro-tag",
+  levelIntroName: "sg-level-intro-name",
+  tile: "sg-tile",
+  tileDone: "sg-tile-done",
+  tileChip: "sg-tile-chip",
 } as const;
 
 const textPrimary = cssColor(mixColors(lighting.hemiSky, palette.eye, 0.12));
@@ -157,6 +164,13 @@ function buildStylesheet(): string {
 }
 .${uiClass.screenVisible} {
   opacity: 1;
+}
+.${uiClass.screen} {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.${uiClass.screen}::-webkit-scrollbar {
+  display: none;
 }
 .${uiClass.title} {
   margin: 0;
@@ -521,6 +535,66 @@ function buildStylesheet(): string {
     transition: none !important;
     animation: none !important;
   }
+}
+
+.${uiClass.levelIntro} {
+  position: absolute;
+  left: 50%;
+  top: 24%;
+  transform: translate(-50%, ${SLIDE_IN_PX}px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  text-align: center;
+  opacity: 0;
+  transition:
+    opacity ${tuning.uiFadeMs}ms ${EASE_CUBIC_OUT},
+    transform ${tuning.uiFadeMs}ms ${EASE_CUBIC_OUT};
+}
+.${uiClass.levelIntroVisible} {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.${uiClass.levelIntroTag} {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.${uiClass.levelIntroName} {
+  margin: 0;
+  font-size: clamp(28px, 4.6vw, 44px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: ${textTitle};
+}
+.${uiClass.tile}:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+.${uiClass.tileDone} {
+  font-weight: 700;
+}
+.${uiClass.tileChip} {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+@keyframes sg-logo-idle-kf {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+.${uiClass.title} {
+  animation: sg-logo-idle-kf 5.5s ease-in-out infinite;
 }
 
 .${uiClass.hints} {

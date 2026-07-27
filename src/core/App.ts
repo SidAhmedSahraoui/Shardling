@@ -64,6 +64,10 @@ export class App {
     this.camera.updateProjectionMatrix();
   }
 
+  setReduceMotion(reduce: boolean): void {
+    this.postfx.setReduceMotion(reduce);
+  }
+
   render(frameDtSec: number): void {
     this.postfx.render(frameDtSec);
   }
