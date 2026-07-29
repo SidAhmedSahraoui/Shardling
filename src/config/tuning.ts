@@ -41,7 +41,7 @@ export const tuning = {
 
   blobShadowRadius: 0.5,
   blobShadowMaxHeight: 6,
-  blobShadowOpacity: 0.55,
+  blobShadowOpacity: 0.4,
   blobShadowMinScale: 0.35,
 
   eyeTrackLerp: 0.12,
@@ -60,14 +60,14 @@ export const tuning = {
   tierDprHi: 2,
 
   bloomIntensity: 1.0,
-  bloomLuminanceThreshold: 0.22,
-  bloomLuminanceSmoothing: 0.35,
+  bloomLuminanceThreshold: 0.7,
+  bloomLuminanceSmoothing: 0.3,
   vignetteOffset: 0.3,
-  vignetteDarkness: 0.62,
+  vignetteDarkness: 0.45,
 
-  fogDensity: 0.02,
-  hemiIntensity: 0.8,
-  dirIntensity: 1.4,
+  fogDensity: 0.013,
+  hemiIntensity: 0.95,
+  dirIntensity: 1.55,
 
   uiFadeMs: 220,
 
@@ -92,10 +92,18 @@ export const tuning = {
 
   levelIntroHoldMs: 2100,
 
-  toneMappingExposure: 1.3,
+  toneMappingExposure: 1.15,
   filmGrainOpacity: 0.05,
   fillLightIntensity: 0.5,
-  showcaseLightMult: 2.6,
+  showcaseLightMult: 1.15,
+
+  trimEmissiveIntensity: 0.85,
+  runeEmissiveIntensity: 0.6,
+  terrainTileJitter: 0.09,
+  runeTileChance: 0.08,
+  lightPoolShardRadius: 2.2,
+  lightPoolPortalRadius: 2.8,
+  lightPoolBouncerRadius: 1.8,
 
   skyStarCount: 320,
   distantIslandCount: 14,

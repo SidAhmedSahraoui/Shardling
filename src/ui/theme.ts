@@ -160,7 +160,7 @@ function buildStylesheet(): string {
   transition: opacity var(--sg-fade, ${tuning.uiFadeMs}ms) ease;
   background:
     radial-gradient(circle at 50% 28%, ${cssColorAlpha(portal, 0.07)}, transparent 62%),
-    linear-gradient(180deg, ${cssColorAlpha(bg0, 0.94)}, ${cssColorAlpha(bg1, 0.97)});
+    linear-gradient(180deg, ${cssColorAlpha(bg0, 0.42)}, ${cssColorAlpha(bg1, 0.62)});
 }
 .${uiClass.screenVisible} {
   opacity: 1;
@@ -546,6 +546,10 @@ function buildStylesheet(): string {
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  padding: 14px 30px 16px;
+  border-radius: 18px;
+  background: ${cssColorAlpha(bg0, 0.58)};
+  backdrop-filter: blur(2px);
   pointer-events: none;
   text-align: center;
   opacity: 0;

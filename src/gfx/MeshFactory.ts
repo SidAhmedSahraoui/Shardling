@@ -1,5 +1,6 @@
 import type { BufferGeometry, Material } from "three";
 import {
+  BoxGeometry,
   ConeGeometry,
   CylinderGeometry,
   DodecahedronGeometry,
@@ -28,6 +29,10 @@ const EDGE_RADIUS = 0.12;
 const EDGE_SEGMENTS = 2;
 const TOP_INSET = 0.06;
 const TOP_LIFT = 0.01;
+const TRIM_THICKNESS = 0.05;
+const TRIM_HEIGHT = 0.06;
+const TRIM_LIFT = 0.02;
+const TRIM_MIN_SPAN = 0.6;
 const RAMP_THICKNESS = 0.5;
 const SHARD_RADIUS = 0.25;
 const SHARD_ELONGATION_Y = 1.4;
@@ -122,6 +127,27 @@ export class MeshFactory {
     top.name = "top";
     top.position.y = h / 2 + TOP_LIFT;
     group.add(top);
+
+    const railW = topW - TRIM_THICKNESS * 2;
+    const railD = topD - TRIM_THICKNESS * 2;
+    if (railW >= TRIM_MIN_SPAN && railD >= TRIM_MIN_SPAN) {
+      const trim = this.materials.material("trim");
+      const railY = h / 2 + TRIM_LIFT;
+      const alongX = new BoxGeometry(railW, TRIM_HEIGHT, TRIM_THICKNESS);
+      const alongZ = new BoxGeometry(TRIM_THICKNESS, TRIM_HEIGHT, railD);
+      for (const side of [-1, 1]) {
+        const railX = new Mesh(alongX.clone(), trim);
+        railX.name = "trim";
+        railX.position.set(0, railY, side * (topD / 2 - TRIM_THICKNESS / 2));
+        group.add(railX);
+        const railZ = new Mesh(alongZ.clone(), trim);
+        railZ.name = "trim";
+        railZ.position.set(side * (topW / 2 - TRIM_THICKNESS / 2), railY, 0);
+        group.add(railZ);
+      }
+      alongX.dispose();
+      alongZ.dispose();
+    }
 
     return group;
   }
@@ -351,18 +377,18 @@ export class MeshFactory {
     return group;
   }
 
-  skyDome(radius: number): Mesh {
+  skyDome(radius: number, world = 1): Mesh {
     const mesh = new Mesh(
       new SphereGeometry(radius, SKY_WIDTH_SEGMENTS, SKY_HEIGHT_SEGMENTS),
-      this.materials.skyMaterial(),
+      this.materials.skyMaterial(world),
     );
     mesh.name = "sky";
     return mesh;
   }
 
-  distantIslands(): InstancedMesh {
+  distantIslands(world = 1): InstancedMesh {
     return this.islandRing({
-      material: this.materials.distantIslandMaterial(),
+      material: this.materials.distantIslandMaterial(world),
       count: tuning.distantIslandCount,
       minRadius: tuning.distantIslandMinRadius,
       maxRadius: tuning.distantIslandMaxRadius,
@@ -375,9 +401,9 @@ export class MeshFactory {
     });
   }
 
-  midIslands(): InstancedMesh {
+  midIslands(world = 1): InstancedMesh {
     return this.islandRing({
-      material: this.materials.material("terrain"),
+      material: this.materials.terrainThemeMaterials(world).body,
       count: tuning.midIslandCount,
       minRadius: tuning.midIslandMinRadius,
       maxRadius: tuning.midIslandMaxRadius,
@@ -439,6 +465,26 @@ export class MeshFactory {
     mesh.instanceMatrix.needsUpdate = true;
     mesh.name = opts.name;
     return mesh;
+  }
+
+  applyWorldTheme(root: Group, world: number): void {
+    const themed = this.materials.terrainThemeMaterials(world);
+    const baseTerrain = this.materials.material("terrain");
+    const baseTop = this.materials.material("terrainTop");
+    const baseTrim = this.materials.material("trim");
+    root.traverse((obj) => {
+      const mesh = obj as Mesh;
+      if (!mesh.isMesh) {
+        return;
+      }
+      if (mesh.material === baseTerrain) {
+        mesh.material = themed.body;
+      } else if (mesh.material === baseTop) {
+        mesh.material = themed.top;
+      } else if (mesh.material === baseTrim) {
+        mesh.material = themed.trim;
+      }
+    });
   }
 
   particleSprite(kind: SpriteKind, size: number): Sprite {

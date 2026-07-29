@@ -12,12 +12,14 @@ import {
   SRGBColorSpace,
 } from "three";
 
-import { palette } from "../config/palette";
+import type { WorldTheme } from "../config/palette";
+import { palette, worldTheme } from "../config/palette";
 import { tuning } from "../config/tuning";
 
 export type StandardMaterialKey =
   | "terrain"
   | "terrainTop"
+  | "trim"
   | "player"
   | "eye"
   | "shard"
@@ -27,10 +29,16 @@ export type StandardMaterialKey =
   | "portalStone"
   | "bouncer";
 
-type TextureKey = "grid" | "softCircle" | "ring" | "skyGradient";
+type TextureKey = "grid" | "softCircle" | "ring";
 
 export type SpriteKind =
   "mote" | "ring" | "dust" | "spark" | "ember" | "portalMote";
+
+export interface ThemedTerrainMaterials {
+  body: MeshStandardMaterial;
+  top: MeshStandardMaterial;
+  trim: MeshStandardMaterial;
+}
 
 const STONE_ROUGHNESS = 0.85;
 const STONE_METALNESS = 0.05;
@@ -62,6 +70,33 @@ const RING_TEXTURE_SIZE = 64;
 const RING_INNER_STOP = 0.68;
 const RING_PEAK_STOP = 0.8;
 const RING_OUTER_STOP = 0.92;
+
+const STONE_TEXTURE_SIZE = 512;
+const STONE_PATCH_UNITS = 4;
+const STONE_TILES_PER_SIDE = 4;
+const STONE_GROUT_PX = 4;
+const STONE_BEVEL_PX = 3;
+const STONE_BEVEL_LIGHT_ALPHA = 0.18;
+const STONE_BEVEL_DARK_ALPHA = 0.16;
+const STONE_MOTTLE_PER_TILE = 3;
+const STONE_MOTTLE_ALPHA = 0.05;
+const STONE_IMPRINT_ALPHA = 0.14;
+const RUNE_STROKE_PX = 7;
+const RUNE_STROKE_ALPHA = 0.92;
+const RUNE_SEGMENTS_MIN = 3;
+const RUNE_SEGMENTS_MAX = 5;
+const RUNE_MARGIN_RATIO = 0.24;
+const STONE_SEED_BASE = 0x7f4a7c15;
+
+const STRATA_TEXTURE_SIZE = 256;
+const STRATA_BANDS = 5;
+const STRATA_JITTER = 0.05;
+const STRATA_SEAM_ALPHA = 0.18;
+const STRATA_SEAM_PX = 2;
+const STRATA_CHIP_COUNT = 14;
+const STRATA_CHIP_ALPHA = 0.07;
+const STRATA_SEED_BASE = 0x3c6ef372;
+
 const SKY_TEXTURE_WIDTH = 2048;
 const SKY_TEXTURE_HEIGHT = 1024;
 const SKY_MID_STOP = 0.5;
@@ -69,13 +104,13 @@ const SKY_NADIR_FOG_STOP = 0.72;
 const SKY_HORIZON_START = 0.36;
 const SKY_HORIZON_PEAK = 0.5;
 const SKY_HORIZON_END = 0.64;
-const SKY_HORIZON_ALPHA = 0.4;
+const SKY_HORIZON_ALPHA = 0.45;
 const STAR_BAND_TOP_V = 0.08;
 const STAR_BAND_BOTTOM_V = 0.52;
 const STAR_MIN_RADIUS_PX = 0.5;
 const STAR_MAX_RADIUS_PX = 1.3;
-const STAR_MIN_ALPHA = 0.25;
-const STAR_MAX_ALPHA = 0.8;
+const STAR_MIN_ALPHA = 0.45;
+const STAR_MAX_ALPHA = 0.9;
 const STAR_HALO_EVERY = 6;
 const STAR_HALO_RADIUS_MULT = 2.6;
 const STAR_HALO_ALPHA_MULT = 0.18;
@@ -105,6 +140,13 @@ function cssAlpha(hex: number, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+function scaleHex(hex: number, mult: number): string {
+  const r = Math.min(255, Math.round(((hex >> 16) & 255) * mult));
+  const g = Math.min(255, Math.round(((hex >> 8) & 255) * mult));
+  const b = Math.min(255, Math.round((hex & 255) * mult));
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 function createLcg(seed: number): () => number {
   let state = seed >>> 0;
   return () => {
@@ -130,6 +172,15 @@ function createCanvas(
     throw new Error("MaterialFactory: 2D canvas context unavailable");
   }
   return { canvas, ctx };
+}
+
+function repeatingTexture(canvas: HTMLCanvasElement): CanvasTexture {
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.colorSpace = SRGBColorSpace;
+  texture.repeat.set(1 / STONE_PATCH_UNITS, 1 / STONE_PATCH_UNITS);
+  return texture;
 }
 
 function createGridTexture(): CanvasTexture {
@@ -179,30 +230,190 @@ function createRingTexture(): CanvasTexture {
   return texture;
 }
 
-function createSkyGradientTexture(): CanvasTexture {
+function drawRune(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  size: number,
+  rand: () => number,
+  style: string,
+): void {
+  const margin = size * RUNE_MARGIN_RATIO;
+  const span = size - margin * 2;
+  const segments =
+    RUNE_SEGMENTS_MIN +
+    Math.floor(rand() * (RUNE_SEGMENTS_MAX - RUNE_SEGMENTS_MIN + 1));
+  const grid = 3;
+  const point = (): [number, number] => [
+    x + margin + Math.floor(rand() * (grid + 1)) * (span / grid),
+    y + margin + Math.floor(rand() * (grid + 1)) * (span / grid),
+  ];
+  ctx.strokeStyle = style;
+  ctx.lineWidth = RUNE_STROKE_PX;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  let [px, py] = point();
+  ctx.moveTo(px, py);
+  for (let i = 0; i < segments; i += 1) {
+    const [nx, ny] = point();
+    ctx.lineTo(nx, ny);
+    px = nx;
+    py = ny;
+  }
+  ctx.stroke();
+}
+
+function createStoneTopTextures(
+  theme: WorldTheme,
+  world: number,
+): { albedo: CanvasTexture; runes: CanvasTexture } {
+  const size = STONE_TEXTURE_SIZE;
+  const tile = size / STONE_TILES_PER_SIDE;
+  const { canvas, ctx } = createCanvas(size, size);
+  const runeLayer = createCanvas(size, size);
+  runeLayer.ctx.fillStyle = "rgb(0, 0, 0)";
+  runeLayer.ctx.fillRect(0, 0, size, size);
+
+  const rand = createLcg((STONE_SEED_BASE ^ (world * 0x9e3779b9)) >>> 0);
+  ctx.fillStyle = css(theme.grout);
+  ctx.fillRect(0, 0, size, size);
+
+  const drawBlock = (x: number, y: number, w: number, h: number): void => {
+    const inset = STONE_GROUT_PX / 2;
+    const bx = x + inset;
+    const by = y + inset;
+    const bw = w - STONE_GROUT_PX;
+    const bh = h - STONE_GROUT_PX;
+    if (bw <= 0 || bh <= 0) {
+      return;
+    }
+    const jitter = 1 + (rand() * 2 - 1) * tuning.terrainTileJitter;
+    ctx.fillStyle = scaleHex(theme.terrainTop, jitter);
+    ctx.fillRect(bx, by, bw, bh);
+
+    for (let m = 0; m < STONE_MOTTLE_PER_TILE; m += 1) {
+      const mx = bx + rand() * bw;
+      const my = by + rand() * bh;
+      const mr = Math.min(bw, bh) * (0.2 + rand() * 0.25);
+      const light = rand() > 0.5;
+      const mottle = ctx.createRadialGradient(mx, my, 0, mx, my, mr);
+      mottle.addColorStop(
+        0,
+        light
+          ? `rgba(255, 255, 255, ${STONE_MOTTLE_ALPHA})`
+          : `rgba(0, 0, 0, ${STONE_MOTTLE_ALPHA})`,
+      );
+      mottle.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(bx, by, bw, bh);
+      ctx.clip();
+      ctx.fillStyle = mottle;
+      ctx.fillRect(mx - mr, my - mr, mr * 2, mr * 2);
+      ctx.restore();
+    }
+
+    ctx.fillStyle = `rgba(255, 255, 255, ${STONE_BEVEL_LIGHT_ALPHA})`;
+    ctx.fillRect(bx, by, bw, STONE_BEVEL_PX);
+    ctx.fillRect(bx, by, STONE_BEVEL_PX, bh);
+    ctx.fillStyle = `rgba(0, 0, 0, ${STONE_BEVEL_DARK_ALPHA})`;
+    ctx.fillRect(bx, by + bh - STONE_BEVEL_PX, bw, STONE_BEVEL_PX);
+    ctx.fillRect(bx + bw - STONE_BEVEL_PX, by, STONE_BEVEL_PX, bh);
+
+    if (rand() < tuning.runeTileChance) {
+      const runeSeed = (rand() * 0x100000000) >>> 0;
+      const runeSize = Math.min(bw, bh);
+      const rx = bx + (bw - runeSize) / 2;
+      const ry = by + (bh - runeSize) / 2;
+      drawRune(
+        ctx,
+        rx,
+        ry,
+        runeSize,
+        createLcg(runeSeed),
+        cssAlpha(theme.grout, STONE_IMPRINT_ALPHA + 0.1),
+      );
+      drawRune(
+        runeLayer.ctx,
+        rx,
+        ry,
+        runeSize,
+        createLcg(runeSeed),
+        `rgba(255, 255, 255, ${RUNE_STROKE_ALPHA})`,
+      );
+    }
+  };
+
+  const widthSteps = [0.75, 1, 1, 1.25, 1.5];
+  for (let row = 0; row < STONE_TILES_PER_SIDE; row += 1) {
+    const y = row * tile;
+    let x = -rand() * tile;
+    while (x < size) {
+      const step = widthSteps[Math.floor(rand() * widthSteps.length)] ?? 1;
+      const w = step * tile;
+      drawBlock(x, y, w, tile);
+      x += w;
+    }
+  }
+
+  return {
+    albedo: repeatingTexture(canvas),
+    runes: repeatingTexture(runeLayer.canvas),
+  };
+}
+
+function createStrataTexture(theme: WorldTheme, world: number): CanvasTexture {
+  const size = STRATA_TEXTURE_SIZE;
+  const { canvas, ctx } = createCanvas(size, size);
+  const rand = createLcg((STRATA_SEED_BASE ^ (world * 0x85ebca6b)) >>> 0);
+  const bandH = size / STRATA_BANDS;
+  for (let b = 0; b < STRATA_BANDS; b += 1) {
+    const jitter = 1 + (rand() * 2 - 1) * STRATA_JITTER;
+    ctx.fillStyle = scaleHex(theme.terrain, jitter);
+    ctx.fillRect(0, b * bandH, size, bandH);
+    ctx.fillStyle = `rgba(0, 0, 0, ${STRATA_SEAM_ALPHA})`;
+    ctx.fillRect(0, b * bandH, size, STRATA_SEAM_PX);
+  }
+  for (let c = 0; c < STRATA_CHIP_COUNT; c += 1) {
+    const w = 6 + rand() * 22;
+    const h = 3 + rand() * 6;
+    ctx.fillStyle =
+      rand() > 0.5
+        ? `rgba(255, 255, 255, ${STRATA_CHIP_ALPHA})`
+        : `rgba(0, 0, 0, ${STRATA_CHIP_ALPHA})`;
+    ctx.fillRect(rand() * size, rand() * size, w, h);
+  }
+  const texture = new CanvasTexture(canvas);
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+function createSkyGradientTexture(theme: WorldTheme): CanvasTexture {
   const { canvas, ctx } = createCanvas(SKY_TEXTURE_WIDTH, SKY_TEXTURE_HEIGHT);
   const gradient = ctx.createLinearGradient(0, 0, 0, SKY_TEXTURE_HEIGHT);
-  gradient.addColorStop(0, css(palette.bg0));
-  gradient.addColorStop(SKY_MID_STOP, css(palette.bg1));
-  gradient.addColorStop(SKY_NADIR_FOG_STOP, css(palette.fog));
-  gradient.addColorStop(1, css(palette.abyss));
+  gradient.addColorStop(0, css(theme.skyZenith));
+  gradient.addColorStop(SKY_MID_STOP, css(theme.skyMid));
+  gradient.addColorStop(SKY_NADIR_FOG_STOP, css(theme.fog));
+  gradient.addColorStop(1, css(theme.skyAbyss));
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, SKY_TEXTURE_WIDTH, SKY_TEXTURE_HEIGHT);
 
   const horizonTop = SKY_TEXTURE_HEIGHT * SKY_HORIZON_START;
   const horizonBottom = SKY_TEXTURE_HEIGHT * SKY_HORIZON_END;
   const horizon = ctx.createLinearGradient(0, horizonTop, 0, horizonBottom);
-  horizon.addColorStop(0, cssAlpha(palette.skyHorizon, 0));
+  horizon.addColorStop(0, cssAlpha(theme.skyHorizonBand, 0));
   horizon.addColorStop(
     SKY_HORIZON_PEAK,
-    cssAlpha(palette.skyHorizon, SKY_HORIZON_ALPHA),
+    cssAlpha(theme.skyHorizonBand, SKY_HORIZON_ALPHA),
   );
-  horizon.addColorStop(1, cssAlpha(palette.skyHorizon, 0));
+  horizon.addColorStop(1, cssAlpha(theme.skyHorizonBand, 0));
   ctx.fillStyle = horizon;
   ctx.fillRect(0, horizonTop, SKY_TEXTURE_WIDTH, horizonBottom - horizonTop);
 
-  const violet = palette.worldAccents[1] ?? palette.portal;
-  const nebulaColors = [palette.portal, violet, palette.portal, violet];
+  const nebulaColors = [palette.portal, theme.trim, palette.portal, theme.trim];
   NEBULAE.forEach((blob, index) => {
     const cx = SKY_TEXTURE_WIDTH * blob.u;
     const cy = SKY_TEXTURE_HEIGHT * blob.v;
@@ -231,12 +442,12 @@ function createSkyGradientTexture(): CanvasTexture {
       STAR_MIN_RADIUS_PX + rand() * (STAR_MAX_RADIUS_PX - STAR_MIN_RADIUS_PX);
     const alpha = STAR_MIN_ALPHA + rand() * (STAR_MAX_ALPHA - STAR_MIN_ALPHA);
     if (i % STAR_HALO_EVERY === 0) {
-      ctx.fillStyle = cssAlpha(palette.star, alpha * STAR_HALO_ALPHA_MULT);
+      ctx.fillStyle = cssAlpha(theme.star, alpha * STAR_HALO_ALPHA_MULT);
       ctx.beginPath();
       ctx.arc(x, y, radius * STAR_HALO_RADIUS_MULT, 0, Math.PI * 2);
       ctx.fill();
     }
-    ctx.fillStyle = cssAlpha(palette.star, alpha);
+    ctx.fillStyle = cssAlpha(theme.star, alpha);
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
@@ -267,8 +478,13 @@ export class MaterialFactory {
   >();
   private readonly textures = new Map<TextureKey, CanvasTexture>();
   private readonly spriteMaterials = new Map<SpriteKind, SpriteMaterial>();
-  private sky: MeshBasicMaterial | undefined;
-  private island: MeshBasicMaterial | undefined;
+  private readonly themedTerrain = new Map<number, ThemedTerrainMaterials>();
+  private readonly themedTextures = new Map<number, CanvasTexture[]>();
+  private readonly skyByWorld = new Map<
+    number,
+    { material: MeshBasicMaterial; texture: CanvasTexture }
+  >();
+  private readonly islandByWorld = new Map<number, MeshBasicMaterial>();
   private motePoints: PointsMaterial | undefined;
 
   material(key: StandardMaterialKey): MeshStandardMaterial {
@@ -278,6 +494,37 @@ export class MaterialFactory {
       this.materials.set(key, material);
     }
     return material;
+  }
+
+  terrainThemeMaterials(world: number): ThemedTerrainMaterials {
+    const index = Math.min(Math.max(Math.round(world), 1), 4);
+    let themed = this.themedTerrain.get(index);
+    if (!themed) {
+      const theme = worldTheme(index);
+      const { albedo, runes } = createStoneTopTextures(theme, index);
+      const strata = createStrataTexture(theme, index);
+      this.themedTextures.set(index, [albedo, runes, strata]);
+      themed = {
+        body: new MeshStandardMaterial({
+          color: 0xffffff,
+          map: strata,
+          roughness: STONE_ROUGHNESS,
+          metalness: STONE_METALNESS,
+        }),
+        top: new MeshStandardMaterial({
+          color: 0xffffff,
+          map: albedo,
+          emissive: theme.trim,
+          emissiveMap: runes,
+          emissiveIntensity: tuning.runeEmissiveIntensity,
+          roughness: STONE_ROUGHNESS,
+          metalness: STONE_METALNESS,
+        }),
+        trim: glowMaterial(theme.trim, tuning.trimEmissiveIntensity),
+      };
+      this.themedTerrain.set(index, themed);
+    }
+    return themed;
   }
 
   spriteMaterial(kind: SpriteKind): SpriteMaterial {
@@ -336,25 +583,35 @@ export class MaterialFactory {
     });
   }
 
-  skyMaterial(): MeshBasicMaterial {
-    if (!this.sky) {
-      this.sky = new MeshBasicMaterial({
-        map: this.skyGradientTexture(),
-        side: BackSide,
-        fog: false,
-      });
+  skyMaterial(world = 1): MeshBasicMaterial {
+    const index = Math.min(Math.max(Math.round(world), 1), 4);
+    let entry = this.skyByWorld.get(index);
+    if (!entry) {
+      const texture = createSkyGradientTexture(worldTheme(index));
+      entry = {
+        material: new MeshBasicMaterial({
+          map: texture,
+          side: BackSide,
+          fog: false,
+        }),
+        texture,
+      };
+      this.skyByWorld.set(index, entry);
     }
-    return this.sky;
+    return entry.material;
   }
 
-  distantIslandMaterial(): MeshBasicMaterial {
-    if (!this.island) {
-      this.island = new MeshBasicMaterial({
-        color: palette.island,
+  distantIslandMaterial(world = 1): MeshBasicMaterial {
+    const index = Math.min(Math.max(Math.round(world), 1), 4);
+    let material = this.islandByWorld.get(index);
+    if (!material) {
+      material = new MeshBasicMaterial({
+        color: worldTheme(index).island,
         fog: false,
       });
+      this.islandByWorld.set(index, material);
     }
-    return this.island;
+    return material;
   }
 
   gridTexture(): CanvasTexture {
@@ -367,10 +624,6 @@ export class MaterialFactory {
 
   ringTexture(): CanvasTexture {
     return this.texture("ring");
-  }
-
-  skyGradientTexture(): CanvasTexture {
-    return this.texture("skyGradient");
   }
 
   dispose(): void {
@@ -386,10 +639,27 @@ export class MaterialFactory {
       texture.dispose();
     }
     this.textures.clear();
-    this.sky?.dispose();
-    this.sky = undefined;
-    this.island?.dispose();
-    this.island = undefined;
+    for (const themed of this.themedTerrain.values()) {
+      themed.body.dispose();
+      themed.top.dispose();
+      themed.trim.dispose();
+    }
+    this.themedTerrain.clear();
+    for (const list of this.themedTextures.values()) {
+      for (const texture of list) {
+        texture.dispose();
+      }
+    }
+    this.themedTextures.clear();
+    for (const entry of this.skyByWorld.values()) {
+      entry.material.dispose();
+      entry.texture.dispose();
+    }
+    this.skyByWorld.clear();
+    for (const material of this.islandByWorld.values()) {
+      material.dispose();
+    }
+    this.islandByWorld.clear();
     this.motePoints?.dispose();
     this.motePoints = undefined;
   }
@@ -406,9 +676,6 @@ export class MaterialFactory {
           break;
         case "ring":
           texture = createRingTexture();
-          break;
-        case "skyGradient":
-          texture = createSkyGradientTexture();
           break;
       }
       this.textures.set(key, texture);
@@ -431,6 +698,11 @@ export class MaterialFactory {
           metalness: STONE_METALNESS,
           map: this.gridTexture(),
         });
+      case "trim":
+        return glowMaterial(
+          palette.worldAccents[0],
+          tuning.trimEmissiveIntensity,
+        );
       case "player":
         return new MeshStandardMaterial({
           color: palette.player,

@@ -1,7 +1,7 @@
 import type { InstancedMesh, Mesh, Object3D } from "three";
 import { DirectionalLight, FogExp2, HemisphereLight, Vector3 } from "three";
 
-import { lighting, palette } from "../config/palette";
+import { lighting, worldTheme } from "../config/palette";
 import { tuning } from "../config/tuning";
 import type { App } from "../core/App";
 import type { LoopHooks } from "../core/GameLoop";
@@ -54,33 +54,37 @@ export function buildShowcase(
     return obj;
   };
 
-  scene.fog = new FogExp2(palette.fog, tuning.fogDensity);
+  const theme = worldTheme(1);
+  scene.fog = new FogExp2(theme.fog, tuning.fogDensity);
 
   const hemi = new HemisphereLight(
     lighting.hemiSky,
-    lighting.hemiGround,
+    theme.fog,
     tuning.hemiIntensity * tuning.showcaseLightMult,
   );
   const fill = new HemisphereLight(
-    palette.skyHorizon,
-    palette.fog,
+    theme.skyHorizonBand,
+    theme.fog,
     tuning.fillLightIntensity * tuning.showcaseLightMult,
   );
   const dir = new DirectionalLight(
-    lighting.directional,
+    theme.sunTint,
     tuning.dirIntensity * tuning.showcaseLightMult,
   );
   dir.position.set(5, 10, 4);
   scene.add(hemi, fill, dir);
   roots.push(hemi, fill, dir);
 
-  add(meshes.skyDome(80), 0, 0, 0);
-  const islands = add(meshes.distantIslands(), 0, 0, 0);
-  const midIslands = add(meshes.midIslands(), 0, 0, 0);
+  add(meshes.skyDome(80, 1), 0, 0, 0);
+  const islands = add(meshes.distantIslands(1), 0, 0, 0);
+  const midIslands = add(meshes.midIslands(1), 0, 0, 0);
 
-  add(meshes.platform(14, 1, 10), 0, -0.5, 0);
-  add(meshes.ramp(3, 1.5, 2.5, "+x"), -4.5, 0.75, -2.5);
-  add(meshes.platform(4, 1, 3), 4.5, 0.5, -3);
+  const stage = add(meshes.platform(14, 1, 10), 0, -0.5, 0);
+  const rampPiece = add(meshes.ramp(3, 1.5, 2.5, "+x"), -4.5, 0.75, -2.5);
+  const perch = add(meshes.platform(4, 1, 3), 4.5, 0.5, -3);
+  meshes.applyWorldTheme(stage, 1);
+  meshes.applyWorldTheme(rampPiece, 1);
+  meshes.applyWorldTheme(perch, 1);
 
   add(meshes.spikeStrip(3, 1.5), 0.5, 0, 3);
   add(meshes.spikeTooth(), 2.6, 0, 3);

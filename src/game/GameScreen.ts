@@ -2,7 +2,7 @@ import type { Collider, World } from "@dimforge/rapier3d-compat";
 import type { InstancedMesh, Mesh, Object3D } from "three";
 import { DirectionalLight, FogExp2, HemisphereLight } from "three";
 
-import { lighting, palette } from "../config/palette";
+import { lighting, worldTheme } from "../config/palette";
 import { tuning } from "../config/tuning";
 import type { App } from "../core/App";
 import type { AudioSynth } from "../core/AudioSynth";
@@ -146,29 +146,31 @@ export class GameScreen implements LoopHooks {
     this.deathVisual = opts.deathVisual ?? (() => Promise.resolve());
     this.meshes = new MeshFactory(opts.materials);
 
+    const worldIndex = opts.mode.kind === "level" ? opts.mode.data.world : 1;
+    const theme = worldTheme(worldIndex);
     const { scene, camera } = this.app;
-    scene.fog = new FogExp2(palette.fog, tuning.fogDensity);
+    scene.fog = new FogExp2(theme.fog, tuning.fogDensity);
     const hemi = new HemisphereLight(
       lighting.hemiSky,
-      lighting.hemiGround,
+      theme.fog,
       tuning.hemiIntensity,
     );
     this.hemi = hemi;
     this.hemiBaseIntensity = hemi.intensity;
-    const dir = new DirectionalLight(lighting.directional, tuning.dirIntensity);
+    const dir = new DirectionalLight(theme.sunTint, tuning.dirIntensity);
     dir.position.set(
       DIR_LIGHT_POSITION.x,
       DIR_LIGHT_POSITION.y,
       DIR_LIGHT_POSITION.z,
     );
     const fill = new HemisphereLight(
-      palette.skyHorizon,
-      palette.fog,
+      theme.skyHorizonBand,
+      theme.fog,
       tuning.fillLightIntensity,
     );
-    const sky = this.meshes.skyDome(SKY_RADIUS);
-    const islands = this.meshes.distantIslands();
-    const midIslands = this.meshes.midIslands();
+    const sky = this.meshes.skyDome(SKY_RADIUS, worldIndex);
+    const islands = this.meshes.distantIslands(worldIndex);
+    const midIslands = this.meshes.midIslands(worldIndex);
     this.islands = islands;
     this.midIslands = midIslands;
     scene.add(hemi, fill, dir, sky, islands, midIslands);
