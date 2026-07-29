@@ -82,7 +82,8 @@ export class GameScreen implements LoopHooks {
 
   private readonly dressing: Object3D[] = [];
   private readonly islands: InstancedMesh;
-  private readonly midIslands: InstancedMesh;
+  private readonly midIslands: Object3D;
+  private readonly clouds: InstancedMesh;
   private readonly unsubs: (() => void)[] = [];
 
   private readonly velXZ = { x: 0, z: 0 };
@@ -175,10 +176,12 @@ export class GameScreen implements LoopHooks {
     opts.materials.setDustTheme(worldIndex);
     const islands = this.meshes.distantIslands(worldIndex);
     const midIslands = this.meshes.midIslands(worldIndex);
+    const clouds = this.meshes.cloudSea(worldIndex);
     this.islands = islands;
     this.midIslands = midIslands;
-    scene.add(hemi, fill, dir, sky, islands, midIslands);
-    this.dressing.push(hemi, fill, dir, sky, islands, midIslands);
+    this.clouds = clouds;
+    scene.add(hemi, fill, dir, sky, islands, midIslands, clouds);
+    this.dressing.push(hemi, fill, dir, sky, islands, midIslands, clouds);
 
     this.world = createPhysicsWorld();
 
@@ -437,6 +440,7 @@ export class GameScreen implements LoopHooks {
     if (!this.reduceMotionFlag && !this.noJuice) {
       this.islands.rotation.y += frameDt * tuning.distantIslandDriftRadPerSec;
       this.midIslands.rotation.y -= frameDt * tuning.midIslandDriftRadPerSec;
+      this.clouds.rotation.y += frameDt * tuning.cloudSeaDriftRadPerSec;
     }
     if (this.flashAge < tuning.portalFlashMs / 1000) {
       this.flashAge += frameDt;
@@ -484,14 +488,16 @@ export class GameScreen implements LoopHooks {
     const { scene } = this.app;
     for (const obj of this.dressing) {
       scene.remove(obj);
-      const instanced = obj as InstancedMesh;
-      if (instanced.isInstancedMesh) {
-        instanced.dispose();
-      }
-      const mesh = obj as Mesh;
-      if (mesh.isMesh) {
-        mesh.geometry.dispose();
-      }
+      obj.traverse((child) => {
+        const instanced = child as InstancedMesh;
+        if (instanced.isInstancedMesh) {
+          instanced.dispose();
+        }
+        const mesh = child as Mesh;
+        if (mesh.isMesh) {
+          mesh.geometry.dispose();
+        }
+      });
     }
     this.dressing.length = 0;
     scene.fog = null;

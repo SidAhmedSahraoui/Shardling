@@ -16,6 +16,7 @@ import { isDebugEnabled } from "./debug/flags";
 import type { GameScreenMode } from "./game/GameScreen";
 import { GameScreen } from "./game/GameScreen";
 import type { LevelResult } from "./game/LevelRunner";
+import type { PosterScene } from "./game/poster";
 import type { ShowcaseScene } from "./game/showcase";
 import { buildShowcase } from "./game/showcase";
 import { MaterialFactory } from "./gfx/MaterialFactory";
@@ -63,6 +64,7 @@ declare global {
       getSession: () => GameScreen | null;
       getShowcase: () => ShowcaseScene | null;
     };
+    __poster?: PosterScene;
   }
 }
 
@@ -470,7 +472,17 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-showMenu();
+const posterParam = new URLSearchParams(window.location.search).get("poster");
+if (posterParam === null) {
+  showMenu();
+} else {
+  showcase?.dispose();
+  showcase = null;
+  const { buildPoster, posterFraming } = await import("./game/poster");
+  const poster = buildPoster(app, materials, posterFraming(posterParam));
+  active = poster;
+  window.__poster = poster;
+}
 
 window.__shardling = {
   app,

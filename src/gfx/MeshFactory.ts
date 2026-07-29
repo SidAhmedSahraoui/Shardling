@@ -1,6 +1,7 @@
 import type { BufferGeometry, Material, Object3D } from "three";
 import {
   BoxGeometry,
+  CircleGeometry,
   ConeGeometry,
   CylinderGeometry,
   DodecahedronGeometry,
@@ -91,9 +92,51 @@ const MID_ISLAND_SEED = 0x2545f491;
 const MID_ISLAND_MIN_SCALE = 1.1;
 const MID_ISLAND_MAX_SCALE = 2.6;
 
+const PORTAL_MEMBRANE_SEGMENTS = 32;
+const PORTAL_MEMBRANE_INSET = 0.55;
+
+const CLOUD_SEED = 0x1b873593;
+const CLOUD_LAYER_SCALE_MIN = 0.7;
+const CLOUD_LAYER_SCALE_RANGE = 0.55;
+const CLOUD_LAYER_OFFSET = 0.18;
+
+const RUIN_SEED = 0x27d4eb2f;
+const RUIN_PILLAR_SEGMENTS = 7;
+const RUIN_PILLAR_TAPER = 0.78;
+const RUIN_PILLAR_SPREAD = 0.72;
+const RUIN_PILLAR_TILT_RAD = 0.16;
+const RUIN_PILLAR_SINK = 0.35;
+const RUIN_CRYSTAL_SPREAD = 0.95;
+const RUIN_CRYSTAL_TILT_RAD = 0.75;
+const RUIN_CRYSTAL_SLIMNESS = 0.3;
+const RUIN_CRYSTAL_SINK = 0.2;
+
+const CRYSTAL_CLUSTER_SEED = 0x85ebca6b;
+const CRYSTAL_CLUSTER_SPIKES = 5;
+const CRYSTAL_CLUSTER_MIN_HEIGHT = 0.75;
+const CRYSTAL_CLUSTER_HEIGHT_RANGE = 1.35;
+const CRYSTAL_CLUSTER_TILT_RAD = 0.7;
+const CRYSTAL_CLUSTER_SPREAD = 0.42;
+
+interface IslandPlacement {
+  x: number;
+  y: number;
+  z: number;
+  scale: number;
+  topY: number;
+}
+
 function roundedBox(w: number, h: number, d: number): RoundedBoxGeometry {
   const radius = Math.min(EDGE_RADIUS, w / 2, h / 2, d / 2);
   return new RoundedBoxGeometry(w, h, d, EDGE_SEGMENTS, radius);
+}
+
+function createLcg(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 0x100000000;
+  };
 }
 
 function mergeAndDispose(parts: BufferGeometry[]): BufferGeometry {
@@ -359,6 +402,17 @@ export class MeshFactory {
       PORTAL_BASE_HEIGHT + PORTAL_RING_RADIUS + PORTAL_RING_TUBE;
     group.add(ring);
 
+    const membrane = new Mesh(
+      new CircleGeometry(
+        PORTAL_RING_RADIUS - PORTAL_RING_TUBE * PORTAL_MEMBRANE_INSET,
+        PORTAL_MEMBRANE_SEGMENTS,
+      ),
+      this.materials.portalMembraneMaterial(false),
+    );
+    membrane.name = "membrane";
+    membrane.position.y = ring.position.y;
+    group.add(membrane);
+
     this.materials.material("portalActive");
 
     return group;
@@ -455,19 +509,200 @@ export class MeshFactory {
     });
   }
 
-  midIslands(world = 1): InstancedMesh {
-    return this.islandRing({
-      material: this.materials.terrainThemeMaterials(world).body,
-      count: tuning.midIslandCount,
-      minRadius: tuning.midIslandMinRadius,
-      maxRadius: tuning.midIslandMaxRadius,
-      minY: tuning.midIslandMinY,
-      maxY: tuning.midIslandMaxY,
-      minScale: MID_ISLAND_MIN_SCALE,
-      maxScale: MID_ISLAND_MAX_SCALE,
-      seed: MID_ISLAND_SEED,
-      name: "midIslands",
-    });
+  midIslands(world = 1): Group {
+    const group = new Group();
+    group.name = "midIslands";
+
+    const placements: IslandPlacement[] = [];
+    group.add(
+      this.islandRing({
+        material: this.materials.terrainThemeMaterials(world).body,
+        count: tuning.midIslandCount,
+        minRadius: tuning.midIslandMinRadius,
+        maxRadius: tuning.midIslandMaxRadius,
+        minY: tuning.midIslandMinY,
+        maxY: tuning.midIslandMaxY,
+        minScale: MID_ISLAND_MIN_SCALE,
+        maxScale: MID_ISLAND_MAX_SCALE,
+        seed: MID_ISLAND_SEED,
+        name: "midIslandRocks",
+        out: placements,
+      }),
+    );
+    group.add(this.ruinPillars(placements, world));
+    group.add(this.ruinCrystals(placements, world));
+
+    return group;
+  }
+
+  cloudSea(world = 1): InstancedMesh {
+    const geometry = new PlaneGeometry(1, 1);
+    geometry.rotateX(-Math.PI / 2);
+    const count = tuning.cloudSeaLayerCount;
+    const mesh = new InstancedMesh(
+      geometry,
+      this.materials.cloudSeaMaterial(world),
+      count,
+    );
+    const matrix = new Matrix4();
+    const quaternion = new Quaternion();
+    const euler = new Euler();
+    const position = new Vector3();
+    const scale = new Vector3();
+    const rand = createLcg(CLOUD_SEED);
+
+    for (let i = 0; i < count; i += 1) {
+      const span =
+        tuning.cloudSeaRadius *
+        2 *
+        (CLOUD_LAYER_SCALE_MIN + rand() * CLOUD_LAYER_SCALE_RANGE);
+      position.set(
+        (rand() - 0.5) * span * CLOUD_LAYER_OFFSET,
+        tuning.cloudSeaY - i * tuning.cloudSeaLayerGap,
+        (rand() - 0.5) * span * CLOUD_LAYER_OFFSET,
+      );
+      euler.set(0, rand() * Math.PI * 2, 0);
+      quaternion.setFromEuler(euler);
+      scale.set(span, 1, span);
+      matrix.compose(position, quaternion, scale);
+      mesh.setMatrixAt(i, matrix);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.name = "cloudSea";
+    mesh.renderOrder = -1;
+    return mesh;
+  }
+
+  crystalCluster(world = 1, scale = 1): Mesh {
+    const parts: BufferGeometry[] = [];
+    const rand = createLcg(CRYSTAL_CLUSTER_SEED);
+    for (let i = 0; i < CRYSTAL_CLUSTER_SPIKES; i += 1) {
+      const spike = new OctahedronGeometry(1, 0);
+      const height =
+        CRYSTAL_CLUSTER_MIN_HEIGHT + rand() * CRYSTAL_CLUSTER_HEIGHT_RANGE;
+      spike.scale(RUIN_CRYSTAL_SLIMNESS, height, RUIN_CRYSTAL_SLIMNESS);
+      spike.translate(0, height, 0);
+      spike.rotateZ((rand() - 0.5) * CRYSTAL_CLUSTER_TILT_RAD);
+      spike.rotateY(rand() * Math.PI * 2);
+      const angle = rand() * Math.PI * 2;
+      const reach = rand() * CRYSTAL_CLUSTER_SPREAD;
+      spike.translate(Math.cos(angle) * reach, 0, Math.sin(angle) * reach);
+      parts.push(spike);
+    }
+    const mesh = new Mesh(
+      mergeAndDispose(parts),
+      this.materials.crystalMaterial(world),
+    );
+    mesh.scale.setScalar(scale);
+    mesh.name = "crystalCluster";
+    return mesh;
+  }
+
+  private ruinPillars(
+    placements: readonly IslandPlacement[],
+    world: number,
+  ): InstancedMesh {
+    const geometry = new CylinderGeometry(
+      tuning.ruinPillarRadius * RUIN_PILLAR_TAPER,
+      tuning.ruinPillarRadius,
+      1,
+      RUIN_PILLAR_SEGMENTS,
+    );
+    geometry.translate(0, 0.5, 0);
+
+    const count = placements.length * tuning.ruinPillarPerIsland;
+    const mesh = new InstancedMesh(
+      geometry,
+      this.materials.terrainThemeMaterials(world).body,
+      count,
+    );
+    const matrix = new Matrix4();
+    const quaternion = new Quaternion();
+    const euler = new Euler();
+    const position = new Vector3();
+    const scale = new Vector3();
+    const rand = createLcg(RUIN_SEED);
+
+    let index = 0;
+    for (const island of placements) {
+      for (let i = 0; i < tuning.ruinPillarPerIsland; i += 1) {
+        const angle = rand() * Math.PI * 2;
+        const reach = Math.sqrt(rand()) * RUIN_PILLAR_SPREAD * island.scale;
+        const height =
+          tuning.ruinPillarMinHeight +
+          rand() * (tuning.ruinPillarMaxHeight - tuning.ruinPillarMinHeight);
+        position.set(
+          island.x + Math.cos(angle) * reach * ISLAND_BASE_X,
+          island.topY - RUIN_PILLAR_SINK * island.scale,
+          island.z + Math.sin(angle) * reach * ISLAND_BASE_Z,
+        );
+        euler.set(
+          (rand() - 0.5) * RUIN_PILLAR_TILT_RAD,
+          rand() * Math.PI * 2,
+          (rand() - 0.5) * RUIN_PILLAR_TILT_RAD,
+        );
+        quaternion.setFromEuler(euler);
+        const girth = 0.7 + rand() * 0.8;
+        scale.set(girth, height, girth);
+        matrix.compose(position, quaternion, scale);
+        mesh.setMatrixAt(index, matrix);
+        index += 1;
+      }
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.name = "ruinPillars";
+    return mesh;
+  }
+
+  private ruinCrystals(
+    placements: readonly IslandPlacement[],
+    world: number,
+  ): InstancedMesh {
+    const geometry = new OctahedronGeometry(1, 0);
+    geometry.scale(RUIN_CRYSTAL_SLIMNESS, 1, RUIN_CRYSTAL_SLIMNESS);
+    geometry.translate(0, 1, 0);
+
+    const count = placements.length * tuning.ruinCrystalPerIsland;
+    const mesh = new InstancedMesh(
+      geometry,
+      this.materials.crystalMaterial(world),
+      count,
+    );
+    const matrix = new Matrix4();
+    const quaternion = new Quaternion();
+    const euler = new Euler();
+    const position = new Vector3();
+    const scale = new Vector3();
+    const rand = createLcg(RUIN_SEED ^ world);
+
+    let index = 0;
+    for (const island of placements) {
+      for (let i = 0; i < tuning.ruinCrystalPerIsland; i += 1) {
+        const angle = rand() * Math.PI * 2;
+        const reach = Math.sqrt(rand()) * RUIN_CRYSTAL_SPREAD * island.scale;
+        const size =
+          tuning.ruinCrystalMinScale +
+          rand() * (tuning.ruinCrystalMaxScale - tuning.ruinCrystalMinScale);
+        position.set(
+          island.x + Math.cos(angle) * reach * ISLAND_BASE_X,
+          island.topY - RUIN_CRYSTAL_SINK * size,
+          island.z + Math.sin(angle) * reach * ISLAND_BASE_Z,
+        );
+        euler.set(
+          (rand() - 0.5) * RUIN_CRYSTAL_TILT_RAD,
+          rand() * Math.PI * 2,
+          (rand() - 0.5) * RUIN_CRYSTAL_TILT_RAD,
+        );
+        quaternion.setFromEuler(euler);
+        scale.set(size, size * (1 + rand()), size);
+        matrix.compose(position, quaternion, scale);
+        mesh.setMatrixAt(index, matrix);
+        index += 1;
+      }
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.name = "ruinCrystals";
+    return mesh;
   }
 
   private islandRing(opts: {
@@ -481,6 +716,7 @@ export class MeshFactory {
     maxScale: number;
     seed: number;
     name: string;
+    out?: IslandPlacement[];
   }): InstancedMesh {
     const geometry = new DodecahedronGeometry(1, 0);
     geometry.scale(ISLAND_BASE_X, ISLAND_BASE_Y, ISLAND_BASE_Z);
@@ -490,11 +726,7 @@ export class MeshFactory {
     const euler = new Euler();
     const position = new Vector3();
     const scale = new Vector3();
-    let state = opts.seed;
-    const rand = (): number => {
-      state = (state * 1664525 + 1013904223) >>> 0;
-      return state / 0x100000000;
-    };
+    const rand = createLcg(opts.seed);
     for (let i = 0; i < opts.count; i += 1) {
       const angle =
         ((i + rand() * ISLAND_ANGLE_JITTER) / opts.count) * Math.PI * 2;
@@ -512,9 +744,17 @@ export class MeshFactory {
       );
       quaternion.setFromEuler(euler);
       const s = opts.minScale + rand() * (opts.maxScale - opts.minScale);
-      scale.set(s, s * (ISLAND_FLATTEN_MIN + rand() * ISLAND_FLATTEN_RANGE), s);
+      const flatten = ISLAND_FLATTEN_MIN + rand() * ISLAND_FLATTEN_RANGE;
+      scale.set(s, s * flatten, s);
       matrix.compose(position, quaternion, scale);
       mesh.setMatrixAt(i, matrix);
+      opts.out?.push({
+        x: position.x,
+        y: position.y,
+        z: position.z,
+        scale: s,
+        topY: position.y + ISLAND_BASE_Y * s * flatten,
+      });
     }
     mesh.instanceMatrix.needsUpdate = true;
     mesh.name = opts.name;
@@ -570,5 +810,9 @@ export function setPortalActive(
     ring.material = materials.material(
       active ? "portalActive" : "portalDormant",
     );
+  }
+  const membrane = portal.getObjectByName("membrane");
+  if (membrane instanceof Mesh) {
+    membrane.material = materials.portalMembraneMaterial(active);
   }
 }

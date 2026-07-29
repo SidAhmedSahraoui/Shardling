@@ -81,6 +81,7 @@ export function buildShowcase(
   materials.setDustTheme(SHOWCASE_WORLD);
   const islands = add(meshes.distantIslands(SHOWCASE_WORLD), 0, 0, 0);
   const midIslands = add(meshes.midIslands(SHOWCASE_WORLD), 0, 0, 0);
+  const clouds = add(meshes.cloudSea(SHOWCASE_WORLD), 0, 0, 0);
 
   add(meshes.platform(14, 1, 10), 0, -0.5, 0);
   add(meshes.ramp(3, 1.5, 2.5, "+x"), -4.5, 0.75, -2.5);
@@ -179,6 +180,7 @@ export function buildShowcase(
         orbitRad += (frameDt * (Math.PI * 2)) / ORBIT_PERIOD_SEC;
         islands.rotation.y += frameDt * tuning.distantIslandDriftRadPerSec;
         midIslands.rotation.y -= frameDt * tuning.midIslandDriftRadPerSec;
+        clouds.rotation.y += frameDt * tuning.cloudSeaDriftRadPerSec;
       }
       placeCamera();
 

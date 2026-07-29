@@ -283,6 +283,7 @@ export function buildLevel(opts: BuildLevelOptions): BuiltLevel {
     position: data.portal,
     rotYDeg: data.portal.rotY,
     worldIndex: data.world,
+    reduceMotion: opts.reduceMotion,
   });
 
   const spikes: Spikes[] = [];

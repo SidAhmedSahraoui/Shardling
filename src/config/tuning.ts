@@ -134,6 +134,31 @@ export const tuning = {
   midIslandMaxY: -4,
   midIslandDriftRadPerSec: 0.0025,
 
+  cloudSeaY: -15,
+  cloudSeaLayerCount: 3,
+  cloudSeaRadius: 120,
+  cloudSeaLayerGap: 6,
+  cloudSeaOpacity: 0.32,
+  cloudSeaDriftRadPerSec: 0.008,
+
+  ruinPillarPerIsland: 3,
+  ruinPillarMinHeight: 2.2,
+  ruinPillarMaxHeight: 7,
+  ruinPillarRadius: 0.55,
+  ruinCrystalPerIsland: 4,
+  ruinCrystalMinScale: 0.5,
+  ruinCrystalMaxScale: 1.5,
+  crystalEmissiveIntensity: 0.7,
+
+  portalMembraneOpacity: 0.42,
+  portalMembraneActiveOpacity: 0.85,
+  portalMembraneSwirlRadPerSec: 0.45,
+
+  posterKeyLightMult: 1.25,
+  posterRimLightIntensity: 1.4,
+  posterEyePitchRad: -0.1,
+  posterVeinEmissive: 2.4,
+
   touchStickRadiusPx: 60,
   touchStickDeadZonePx: 20,
   touchJumpSizePx: 80,

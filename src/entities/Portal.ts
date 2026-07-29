@@ -1,6 +1,6 @@
 import type { RigidBody, World } from "@dimforge/rapier3d-compat";
 import { ColliderDesc, RigidBodyDesc } from "@dimforge/rapier3d-compat";
-import type { Group, Mesh, Scene } from "three";
+import type { Group, Mesh, Object3D, Scene } from "three";
 
 import { tuning } from "../config/tuning";
 import type { EventBus } from "../core/EventBus";
@@ -38,6 +38,7 @@ export interface PortalOptions {
   position: { x: number; y: number; z: number };
   rotYDeg: number;
   worldIndex?: number;
+  reduceMotion?: () => boolean;
 }
 
 export class Portal {
@@ -48,14 +49,18 @@ export class Portal {
   private readonly materials: MaterialFactory;
   private readonly group: Group;
   private readonly body: RigidBody;
+  private readonly membrane: Object3D | undefined;
+  private readonly reduceMotion: () => boolean;
   private activeFlag = false;
 
   constructor(opts: PortalOptions) {
     this.world = opts.world;
     this.scene = opts.scene;
     this.materials = opts.materials;
+    this.reduceMotion = opts.reduceMotion ?? ((): boolean => false);
 
     this.group = opts.meshes.portal();
+    this.membrane = this.group.getObjectByName("membrane");
     opts.meshes.applyWorldTheme(this.group, opts.worldIndex);
     this.group.position.set(opts.position.x, opts.position.y, opts.position.z);
     this.group.rotation.y = opts.rotYDeg * DEG_TO_RAD;
@@ -138,7 +143,11 @@ export class Portal {
   }
 
   update(frameDtSec: number): void {
-    void frameDtSec;
+    if (!this.membrane || this.reduceMotion()) {
+      return;
+    }
+    this.membrane.rotation.z +=
+      frameDtSec * tuning.portalMembraneSwirlRadPerSec;
   }
 
   destroy(): void {

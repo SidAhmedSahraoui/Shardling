@@ -33,6 +33,8 @@ export interface WorldTheme {
   trim: number;
   star: number;
   island: number;
+  crystal: number;
+  cloud: number;
   sunTint: number;
   lightPoolStrength: number;
 }
@@ -56,6 +58,8 @@ export const worldThemes: readonly [
     trim: 0xffc24b,
     star: 0xfff3d8,
     island: 0x6d82c4,
+    crystal: 0xffd98a,
+    cloud: 0xd9c0a2,
     sunTint: 0xfff1dc,
     lightPoolStrength: 0.4,
   },
@@ -72,6 +76,8 @@ export const worldThemes: readonly [
     trim: 0x9b8cff,
     star: 0xe6dcff,
     island: 0x5f568f,
+    crystal: 0xffc9a0,
+    cloud: 0xc9a2c0,
     sunTint: 0xf6e3ff,
     lightPoolStrength: 0.42,
   },
@@ -88,6 +94,8 @@ export const worldThemes: readonly [
     trim: 0xd9f06b,
     star: 0xdcfff0,
     island: 0x49736f,
+    crystal: 0xffd9a0,
+    cloud: 0xb6d9c8,
     sunTint: 0xeafff2,
     lightPoolStrength: 0.42,
   },
@@ -104,6 +112,8 @@ export const worldThemes: readonly [
     trim: 0xff7a9e,
     star: 0xffe6cf,
     island: 0x6b4260,
+    crystal: 0x8fd8ff,
+    cloud: 0xe8a48f,
     sunTint: 0xffdfc9,
     lightPoolStrength: 0.5,
   },

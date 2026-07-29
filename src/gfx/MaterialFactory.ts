@@ -3,6 +3,7 @@ import {
   BackSide,
   CanvasTexture,
   Color,
+  DoubleSide,
   MeshBasicMaterial,
   MeshStandardMaterial,
   NormalBlending,
@@ -31,7 +32,7 @@ export type StandardMaterialKey =
   | "portalStone"
   | "bouncer";
 
-type TextureKey = "grid" | "softCircle" | "ring" | "vein";
+type TextureKey = "grid" | "softCircle" | "ring" | "vein" | "cloud" | "swirl";
 
 export type SpriteKind =
   "mote" | "ring" | "dust" | "spark" | "ember" | "portalMote";
@@ -106,6 +107,27 @@ const STRATA_SEAM_PX = 2;
 const STRATA_CHIP_COUNT = 14;
 const STRATA_CHIP_ALPHA = 0.07;
 const STRATA_SEED_BASE = 0x3c6ef372;
+
+const CLOUD_TEXTURE_SIZE = 512;
+const CLOUD_PUFF_COUNT = 96;
+const CLOUD_PUFF_MIN_RADIUS = 0.035;
+const CLOUD_PUFF_RANGE_RADIUS = 0.1;
+const CLOUD_PUFF_SPREAD = 0.46;
+const CLOUD_PUFF_SQUASH = 0.78;
+const CLOUD_PUFF_ALPHA = 0.34;
+const CLOUD_FALLOFF_SOLID_STOP = 0.74;
+const CLOUD_SEED = 0x6f4d1a37;
+
+const SWIRL_TEXTURE_SIZE = 256;
+const SWIRL_ARMS = 3;
+const SWIRL_TURNS = 1.35;
+const SWIRL_STEPS = 150;
+const SWIRL_MIN_R = 0.06;
+const SWIRL_MAX_R = 0.47;
+const SWIRL_DOT_MIN_PX = 1.5;
+const SWIRL_DOT_MAX_PX = 7;
+const SWIRL_CORE_STOP = 0.22;
+const SWIRL_CORE_ALPHA = 0.55;
 
 const SKY_TEXTURE_WIDTH = 2048;
 const SKY_TEXTURE_HEIGHT = 1024;
@@ -460,6 +482,83 @@ function createStrataTexture(theme: WorldTheme, world: number): CanvasTexture {
   return texture;
 }
 
+function createCloudTexture(): CanvasTexture {
+  const { canvas, ctx } = createCanvas(CLOUD_TEXTURE_SIZE, CLOUD_TEXTURE_SIZE);
+  const size = CLOUD_TEXTURE_SIZE;
+  const half = size / 2;
+  const rand = createLcg(CLOUD_SEED);
+
+  for (let i = 0; i < CLOUD_PUFF_COUNT; i += 1) {
+    const angle = rand() * Math.PI * 2;
+    const dist = Math.sqrt(rand()) * CLOUD_PUFF_SPREAD * size;
+    const cx = half + Math.cos(angle) * dist;
+    const cy = half + Math.sin(angle) * dist * CLOUD_PUFF_SQUASH;
+    const radius = (CLOUD_PUFF_MIN_RADIUS + rand() * CLOUD_PUFF_RANGE_RADIUS) * size;
+    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+    gradient.addColorStop(0, mask(1, CLOUD_PUFF_ALPHA));
+    gradient.addColorStop(1, mask(1, 0));
+    ctx.fillStyle = gradient;
+    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+  }
+
+  ctx.globalCompositeOperation = "destination-in";
+  const falloff = ctx.createRadialGradient(half, half, 0, half, half, half);
+  falloff.addColorStop(0, mask(1, 1));
+  falloff.addColorStop(CLOUD_FALLOFF_SOLID_STOP, mask(1, 1));
+  falloff.addColorStop(1, mask(1, 0));
+  ctx.fillStyle = falloff;
+  ctx.fillRect(0, 0, size, size);
+  ctx.globalCompositeOperation = "source-over";
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
+function createSwirlTexture(): CanvasTexture {
+  const { canvas, ctx } = createCanvas(SWIRL_TEXTURE_SIZE, SWIRL_TEXTURE_SIZE);
+  const size = SWIRL_TEXTURE_SIZE;
+  const half = size / 2;
+
+  const core = ctx.createRadialGradient(half, half, 0, half, half, half);
+  core.addColorStop(0, mask(1, SWIRL_CORE_ALPHA));
+  core.addColorStop(SWIRL_CORE_STOP, mask(1, SWIRL_CORE_ALPHA * 0.35));
+  core.addColorStop(1, mask(1, 0));
+  ctx.fillStyle = core;
+  ctx.fillRect(0, 0, size, size);
+
+  for (let arm = 0; arm < SWIRL_ARMS; arm += 1) {
+    const armOffset = (arm / SWIRL_ARMS) * Math.PI * 2;
+    for (let step = 0; step < SWIRL_STEPS; step += 1) {
+      const u = step / (SWIRL_STEPS - 1);
+      const r = (SWIRL_MIN_R + u * (SWIRL_MAX_R - SWIRL_MIN_R)) * size;
+      const theta = armOffset + u * SWIRL_TURNS * Math.PI * 2;
+      const cx = half + Math.cos(theta) * r;
+      const cy = half + Math.sin(theta) * r;
+      const dot = SWIRL_DOT_MIN_PX + (1 - u) * (SWIRL_DOT_MAX_PX - SWIRL_DOT_MIN_PX);
+      const alpha = (1 - u) * (1 - u);
+      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, dot);
+      gradient.addColorStop(0, mask(1, alpha));
+      gradient.addColorStop(1, mask(1, 0));
+      ctx.fillStyle = gradient;
+      ctx.fillRect(cx - dot, cy - dot, dot * 2, dot * 2);
+    }
+  }
+
+  ctx.globalCompositeOperation = "destination-in";
+  const edge = ctx.createRadialGradient(half, half, 0, half, half, half);
+  edge.addColorStop(0, mask(1, 1));
+  edge.addColorStop(0.82, mask(1, 1));
+  edge.addColorStop(1, mask(1, 0));
+  ctx.fillStyle = edge;
+  ctx.fillRect(0, 0, size, size);
+  ctx.globalCompositeOperation = "source-over";
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 function createSkyGradientTexture(theme: WorldTheme): CanvasTexture {
   const { canvas, ctx } = createCanvas(SKY_TEXTURE_WIDTH, SKY_TEXTURE_HEIGHT);
   const gradient = ctx.createLinearGradient(0, 0, 0, SKY_TEXTURE_HEIGHT);
@@ -554,6 +653,9 @@ export class MaterialFactory {
     { material: MeshBasicMaterial; texture: CanvasTexture }
   >();
   private readonly islandByWorld = new Map<number, MeshBasicMaterial>();
+  private readonly crystalByWorld = new Map<number, MeshStandardMaterial>();
+  private readonly cloudByWorld = new Map<number, MeshBasicMaterial>();
+  private readonly membranes = new Map<boolean, MeshBasicMaterial>();
   private motePoints: PointsMaterial | undefined;
   private playerRim: MeshBasicMaterial | undefined;
   private trailPoints: PointsMaterial | undefined;
@@ -713,6 +815,58 @@ export class MaterialFactory {
     return entry.material;
   }
 
+  crystalMaterial(world = 1): MeshStandardMaterial {
+    const index = Math.min(Math.max(Math.round(world), 1), 4);
+    let material = this.crystalByWorld.get(index);
+    if (!material) {
+      material = glowMaterial(
+        worldTheme(index).crystal,
+        tuning.crystalEmissiveIntensity,
+      );
+      material.flatShading = true;
+      this.crystalByWorld.set(index, material);
+    }
+    return material;
+  }
+
+  cloudSeaMaterial(world = 1): MeshBasicMaterial {
+    const index = Math.min(Math.max(Math.round(world), 1), 4);
+    let material = this.cloudByWorld.get(index);
+    if (!material) {
+      material = new MeshBasicMaterial({
+        map: this.texture("cloud"),
+        color: worldTheme(index).cloud,
+        transparent: true,
+        opacity: tuning.cloudSeaOpacity,
+        depthWrite: false,
+        side: DoubleSide,
+        fog: false,
+      });
+      this.cloudByWorld.set(index, material);
+    }
+    return material;
+  }
+
+  portalMembraneMaterial(active: boolean): MeshBasicMaterial {
+    let material = this.membranes.get(active);
+    if (!material) {
+      material = new MeshBasicMaterial({
+        map: this.texture("swirl"),
+        color: palette.portal,
+        transparent: true,
+        opacity: active
+          ? tuning.portalMembraneActiveOpacity
+          : tuning.portalMembraneOpacity,
+        blending: AdditiveBlending,
+        depthWrite: false,
+        side: DoubleSide,
+        fog: false,
+      });
+      this.membranes.set(active, material);
+    }
+    return material;
+  }
+
   distantIslandMaterial(world = 1): MeshBasicMaterial {
     const index = Math.min(Math.max(Math.round(world), 1), 4);
     let material = this.islandByWorld.get(index);
@@ -772,6 +926,18 @@ export class MaterialFactory {
       material.dispose();
     }
     this.islandByWorld.clear();
+    for (const material of this.crystalByWorld.values()) {
+      material.dispose();
+    }
+    this.crystalByWorld.clear();
+    for (const material of this.cloudByWorld.values()) {
+      material.dispose();
+    }
+    this.cloudByWorld.clear();
+    for (const material of this.membranes.values()) {
+      material.dispose();
+    }
+    this.membranes.clear();
     this.motePoints?.dispose();
     this.motePoints = undefined;
     this.playerRim?.dispose();
@@ -795,6 +961,12 @@ export class MaterialFactory {
           break;
         case "vein":
           texture = createVeinTexture();
+          break;
+        case "cloud":
+          texture = createCloudTexture();
+          break;
+        case "swirl":
+          texture = createSwirlTexture();
           break;
       }
       this.textures.set(key, texture);
