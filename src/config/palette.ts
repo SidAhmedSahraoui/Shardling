@@ -82,7 +82,7 @@ export const worldThemes: readonly [
     terrain: 0x6f958f,
     terrainTop: 0x9ec4ba,
     grout: 0x5d827d,
-    trim: 0x5ee6a8,
+    trim: 0xd9f06b,
     star: 0xdcfff0,
     island: 0x49736f,
     sunTint: 0xeafff2,

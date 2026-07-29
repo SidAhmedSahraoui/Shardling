@@ -118,6 +118,15 @@ export class ControlHints {
       );
     }
 
+    this.unsubscribes.push(
+      opts.bus.on("game:paused", () => {
+        this.el.classList.add(uiClass.hintHidden);
+      }),
+      opts.bus.on("game:resumed", () => {
+        this.el.classList.remove(uiClass.hintHidden);
+      }),
+    );
+
     for (const row of this.rows) {
       this.el.appendChild(row.el);
     }

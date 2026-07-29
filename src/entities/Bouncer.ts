@@ -24,6 +24,7 @@ export interface BouncerOptions {
   scene: Scene;
   meshes: MeshFactory;
   position: { x: number; y: number; z: number };
+  worldIndex?: number;
 }
 
 export class Bouncer {
@@ -44,6 +45,7 @@ export class Bouncer {
     const { position } = opts;
 
     this.wrapper = opts.meshes.bouncer();
+    opts.meshes.applyWorldTheme(this.wrapper, opts.worldIndex);
     const pad = this.wrapper.getObjectByName("pad");
     if (!pad) {
       throw new Error("Bouncer: factory bouncer is missing its pad child");

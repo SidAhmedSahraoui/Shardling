@@ -76,15 +76,14 @@ export function buildShowcase(
   roots.push(hemi, fill, dir);
 
   add(meshes.skyDome(80, 1), 0, 0, 0);
+  materials.releaseSkiesExcept(1);
+  materials.setDustTheme(1);
   const islands = add(meshes.distantIslands(1), 0, 0, 0);
   const midIslands = add(meshes.midIslands(1), 0, 0, 0);
 
-  const stage = add(meshes.platform(14, 1, 10), 0, -0.5, 0);
-  const rampPiece = add(meshes.ramp(3, 1.5, 2.5, "+x"), -4.5, 0.75, -2.5);
-  const perch = add(meshes.platform(4, 1, 3), 4.5, 0.5, -3);
-  meshes.applyWorldTheme(stage, 1);
-  meshes.applyWorldTheme(rampPiece, 1);
-  meshes.applyWorldTheme(perch, 1);
+  add(meshes.platform(14, 1, 10), 0, -0.5, 0);
+  add(meshes.ramp(3, 1.5, 2.5, "+x"), -4.5, 0.75, -2.5);
+  add(meshes.platform(4, 1, 3), 4.5, 0.5, -3);
 
   add(meshes.spikeStrip(3, 1.5), 0.5, 0, 3);
   add(meshes.spikeTooth(), 2.6, 0, 3);
@@ -116,6 +115,10 @@ export function buildShowcase(
       Math.sin(angle) * radius,
     );
     motes.push({ sprite, baseY, phase: i * 0.7 });
+  }
+
+  for (const root of roots) {
+    meshes.applyWorldTheme(root, 1);
   }
 
   let elapsed = 0;

@@ -1,4 +1,4 @@
-import type { BufferGeometry, Material } from "three";
+import type { BufferGeometry, Material, Object3D } from "three";
 import {
   BoxGeometry,
   ConeGeometry,
@@ -33,6 +33,8 @@ const TRIM_THICKNESS = 0.05;
 const TRIM_HEIGHT = 0.06;
 const TRIM_LIFT = 0.02;
 const TRIM_MIN_SPAN = 0.6;
+const POOL_BAKE_PITCH = 0.8;
+const POOL_BAKE_MAX_SEGMENTS = 64;
 const RAMP_THICKNESS = 0.5;
 const SHARD_RADIUS = 0.25;
 const SHARD_ELONGATION_Y = 1.4;
@@ -117,7 +119,18 @@ export class MeshFactory {
 
     const topW = Math.max(w - TOP_INSET * 2, w * 0.5);
     const topD = Math.max(d - TOP_INSET * 2, d * 0.5);
-    const topGeometry = new PlaneGeometry(topW, topD);
+    const topGeometry = new PlaneGeometry(
+      topW,
+      topD,
+      Math.min(
+        POOL_BAKE_MAX_SEGMENTS,
+        Math.max(1, Math.ceil(topW / POOL_BAKE_PITCH)),
+      ),
+      Math.min(
+        POOL_BAKE_MAX_SEGMENTS,
+        Math.max(1, Math.ceil(topD / POOL_BAKE_PITCH)),
+      ),
+    );
     const uv = topGeometry.getAttribute("uv");
     for (let i = 0; i < uv.count; i += 1) {
       uv.setXY(i, uv.getX(i) * topW, uv.getY(i) * topD);
@@ -467,17 +480,21 @@ export class MeshFactory {
     return mesh;
   }
 
-  applyWorldTheme(root: Group, world: number): void {
+  applyWorldTheme(root: Object3D, world: number | undefined): void {
+    if (world === undefined) {
+      return;
+    }
     const themed = this.materials.terrainThemeMaterials(world);
     const baseTerrain = this.materials.material("terrain");
     const baseTop = this.materials.material("terrainTop");
     const baseTrim = this.materials.material("trim");
+    const baseStone = this.materials.material("portalStone");
     root.traverse((obj) => {
       const mesh = obj as Mesh;
       if (!mesh.isMesh) {
         return;
       }
-      if (mesh.material === baseTerrain) {
+      if (mesh.material === baseTerrain || mesh.material === baseStone) {
         mesh.material = themed.body;
       } else if (mesh.material === baseTop) {
         mesh.material = themed.top;

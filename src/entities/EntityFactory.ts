@@ -282,6 +282,7 @@ export function buildLevel(opts: BuildLevelOptions): BuiltLevel {
     bus,
     position: data.portal,
     rotYDeg: data.portal.rotY,
+    worldIndex: data.world,
   });
 
   const spikes: Spikes[] = [];
@@ -299,7 +300,13 @@ export function buildLevel(opts: BuildLevelOptions): BuiltLevel {
         break;
       case "platform":
         platforms.push(
-          new MovingPlatform({ world, scene, meshes, data: hazard }),
+          new MovingPlatform({
+            world,
+            scene,
+            meshes,
+            data: hazard,
+            worldIndex: data.world,
+          }),
         );
         break;
       case "crumble":
@@ -310,11 +317,20 @@ export function buildLevel(opts: BuildLevelOptions): BuiltLevel {
             meshes,
             data: hazard,
             reduceMotion: opts.reduceMotion,
+            worldIndex: data.world,
           }),
         );
         break;
       case "bouncer":
-        bouncers.push(new Bouncer({ world, scene, meshes, position: hazard }));
+        bouncers.push(
+          new Bouncer({
+            world,
+            scene,
+            meshes,
+            position: hazard,
+            worldIndex: data.world,
+          }),
+        );
         break;
     }
   }

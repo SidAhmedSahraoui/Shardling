@@ -169,6 +169,8 @@ export class GameScreen implements LoopHooks {
       tuning.fillLightIntensity,
     );
     const sky = this.meshes.skyDome(SKY_RADIUS, worldIndex);
+    opts.materials.releaseSkiesExcept(worldIndex);
+    opts.materials.setDustTheme(worldIndex);
     const islands = this.meshes.distantIslands(worldIndex);
     const midIslands = this.meshes.midIslands(worldIndex);
     this.islands = islands;

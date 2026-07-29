@@ -235,7 +235,11 @@ function buildStylesheet(): string {
   bottom: 18px;
   left: 0;
   right: 0;
-  margin: 0;
+  width: fit-content;
+  margin: 0 auto;
+  padding: 2px 14px;
+  border-radius: 12px;
+  background: ${cssColorAlpha(bg0, 0.72)};
   text-align: center;
   font-size: 14px;
   letter-spacing: 0.08em;
@@ -243,15 +247,18 @@ function buildStylesheet(): string {
 }
 .${uiClass.credits} {
   position: absolute;
-  bottom: 40px;
+  bottom: 44px;
   left: 0;
   right: 0;
-  margin: 0;
+  width: fit-content;
+  margin: 0 auto;
+  padding: 2px 14px;
+  border-radius: 12px;
+  background: ${cssColorAlpha(bg0, 0.72)};
   text-align: center;
   font-size: 12px;
   letter-spacing: 0.06em;
   color: ${textDim};
-  opacity: 0.8;
 }
 .${uiClass.panel} {
   display: flex;

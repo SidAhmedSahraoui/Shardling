@@ -31,6 +31,7 @@ export interface CrumbleOptions {
   meshes: MeshFactory;
   data: CrumbleData;
   reduceMotion: () => boolean;
+  worldIndex?: number;
 }
 
 export class Crumble {
@@ -70,6 +71,7 @@ export class Crumble {
     };
 
     this.wrapper = opts.meshes.platform(data.w, CRUMBLE_THICKNESS, data.d);
+    opts.meshes.applyWorldTheme(this.wrapper, opts.worldIndex);
     this.wrapper.name = "crumble";
     this.wrapper.position.set(this.center.x, this.center.y, this.center.z);
     this.wrapper.traverse((obj) => {

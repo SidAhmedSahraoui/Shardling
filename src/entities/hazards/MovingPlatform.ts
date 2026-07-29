@@ -17,6 +17,7 @@ export interface MovingPlatformOptions {
   scene: Scene;
   meshes: MeshFactory;
   data: PlatformData;
+  worldIndex?: number;
 }
 
 export class MovingPlatform {
@@ -46,6 +47,7 @@ export class MovingPlatform {
     this.follower = new PathFollower(data.path, data.speed, data.mode);
 
     this.wrapper = opts.meshes.platform(data.w, PLATFORM_THICKNESS, data.d);
+    opts.meshes.applyWorldTheme(this.wrapper, opts.worldIndex);
     this.wrapper.name = "movingPlatform";
     this.currPos.set(
       this.follower.position.x + this.halfW,

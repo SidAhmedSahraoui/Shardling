@@ -37,6 +37,7 @@ export interface PortalOptions {
   bus: EventBus;
   position: { x: number; y: number; z: number };
   rotYDeg: number;
+  worldIndex?: number;
 }
 
 export class Portal {
@@ -55,6 +56,7 @@ export class Portal {
     this.materials = opts.materials;
 
     this.group = opts.meshes.portal();
+    opts.meshes.applyWorldTheme(this.group, opts.worldIndex);
     this.group.position.set(opts.position.x, opts.position.y, opts.position.z);
     this.group.rotation.y = opts.rotYDeg * DEG_TO_RAD;
     this.scene.add(this.group);

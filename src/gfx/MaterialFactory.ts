@@ -559,6 +559,21 @@ export class MaterialFactory {
     return material;
   }
 
+  setDustTheme(world: number): void {
+    this.spriteMaterial("dust").color.setHex(worldTheme(world).grout);
+  }
+
+  releaseSkiesExcept(world: number): void {
+    const keep = Math.min(Math.max(Math.round(world), 1), 4);
+    for (const [index, entry] of this.skyByWorld) {
+      if (index !== keep) {
+        entry.material.dispose();
+        entry.texture.dispose();
+        this.skyByWorld.delete(index);
+      }
+    }
+  }
+
   motePointsMaterial(): PointsMaterial {
     this.motePoints ??= new PointsMaterial({
       map: this.softCircleTexture(),
