@@ -41,14 +41,7 @@ export class MenuScreen implements Screen {
     const actions = el("div", uiClass.menuActions);
     actions.append(play, levels, settings);
 
-    const version = el(
-      "p",
-      uiClass.version,
-      `${strings.menu.versionPrefix}${opts.version}`,
-    );
-    const credits = el("p", uiClass.credits, strings.menu.credits);
-
-    this.el.append(title, actions, credits, version);
+    this.el.append(title, actions);
 
     this.bag.add(play, "click", () => {
       opts.bus.emit("ui:click");
