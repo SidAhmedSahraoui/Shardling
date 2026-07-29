@@ -575,6 +575,7 @@ export class GameScreen implements LoopHooks {
       noJuice: () => isJuiceDisabled(),
       getVelocity: () => this.player.velocity,
       getGrounded: () => this.player.grounded,
+      getCameraYaw: () => this.rig.getYaw(),
     });
   }
 }

@@ -32,6 +32,7 @@ const PULSE_RETURN_SEC = 0.15;
 
 const IDLE_SPEED_EPSILON = 0.3;
 const EYE_TRACK_MIN_SPEED = 0.15;
+const EYE_MOVE_LEAN_MAX = 0.55;
 
 const DUST_POOL_SIZE = 8;
 const DUST_MIN_COUNT = 4;
@@ -99,6 +100,7 @@ export interface PlayerVisualsOptions {
   noJuice: () => boolean;
   getVelocity: () => { x: number; y: number; z: number };
   getGrounded: () => boolean;
+  getCameraYaw: () => number;
 }
 
 export class PlayerVisuals {
@@ -112,6 +114,7 @@ export class PlayerVisuals {
   private readonly noJuice: () => boolean;
   private readonly getVelocity: PlayerVisualsOptions["getVelocity"];
   private readonly getGrounded: () => boolean;
+  private readonly getCameraYaw: () => number;
   private readonly unsubs: (() => void)[];
 
   private readonly dust: DustParticle[];
@@ -149,6 +152,7 @@ export class PlayerVisuals {
     this.noJuice = opts.noJuice;
     this.getVelocity = opts.getVelocity;
     this.getGrounded = opts.getGrounded;
+    this.getCameraYaw = opts.getCameraYaw;
 
     this.reduceMotion = opts.reduceMotion;
     this.eyes = [];
@@ -211,8 +215,14 @@ export class PlayerVisuals {
     const v = this.getVelocity();
     const speedXZ = Math.hypot(v.x, v.z);
 
+    const camYaw = this.getCameraYaw();
     if (speedXZ > EYE_TRACK_MIN_SPEED) {
-      this.eyeTargetYaw = Math.atan2(v.x, v.z);
+      const moveYaw = Math.atan2(v.x, v.z);
+      const lean =
+        clamp01(speedXZ / tuning.maxSpeedXZ) * EYE_MOVE_LEAN_MAX;
+      this.eyeTargetYaw = camYaw + wrapAngle(moveYaw - camYaw) * lean;
+    } else {
+      this.eyeTargetYaw = camYaw;
     }
     const yawK = frameLerp(tuning.eyeTrackLerp, frameDtSec);
     this.eyeWrapper.rotation.y = wrapAngle(
