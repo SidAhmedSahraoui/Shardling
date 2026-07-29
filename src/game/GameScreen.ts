@@ -61,6 +61,7 @@ export class GameScreen implements LoopHooks {
   private readonly deathVisual: () => Promise<void>;
 
   private readonly meshes: MeshFactory;
+  private readonly materials: MaterialFactory;
   private readonly builtLevel: BuiltLevel | null = null;
   private readonly graybox: Graybox | null = null;
   private readonly colliderTags: Map<number, ColliderTag>;
@@ -145,6 +146,7 @@ export class GameScreen implements LoopHooks {
     this.isCameraExternal = opts.isCameraExternal ?? (() => false);
     this.deathVisual = opts.deathVisual ?? (() => Promise.resolve());
     this.meshes = new MeshFactory(opts.materials);
+    this.materials = opts.materials;
 
     const worldIndex = opts.mode.kind === "level" ? opts.mode.data.world : 1;
     const theme = worldTheme(worldIndex);
@@ -567,6 +569,7 @@ export class GameScreen implements LoopHooks {
       eyeWrapper: this.player.eyeWrapper,
       scene: this.app.scene,
       meshes: this.meshes,
+      materials: this.materials,
       bus: this.bus,
       reduceMotion: () => this.save.getSettings().reduceMotion,
       noJuice: () => isJuiceDisabled(),

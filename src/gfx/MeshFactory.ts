@@ -65,12 +65,16 @@ const PORTAL_BASE_HEIGHT = 0.3;
 const PORTAL_BASE_DEPTH = 1.4;
 const BALL_WIDTH_SEGMENTS = 24;
 const BALL_HEIGHT_SEGMENTS = 18;
-const EYE_RADIUS_RATIO = 0.33;
-const EYE_FLATTEN_Z = 0.45;
-const EYE_UP_RATIO = 0.18;
-const EYE_FORWARD_RATIO = 0.93;
+const EYE_RADIUS_RATIO = 0.3;
+const EYE_FLATTEN_Z = 0.42;
+const EYE_UP_RATIO = 0.2;
+const EYE_FORWARD_RATIO = 0.9;
+const EYE_SIDE_RATIO = 0.31;
 const EYE_WIDTH_SEGMENTS = 16;
 const EYE_HEIGHT_SEGMENTS = 12;
+const PUPIL_RADIUS_RATIO = 0.42;
+const PUPIL_FORWARD = 0.62;
+const PUPIL_UP = -0.04;
 const SKY_WIDTH_SEGMENTS = 32;
 const SKY_HEIGHT_SEGMENTS = 16;
 const ISLAND_BASE_X = 1.9;
@@ -372,20 +376,57 @@ export class MeshFactory {
     body.name = "body";
     group.add(body);
 
+    const rim = new Mesh(
+      new SphereGeometry(
+        r * tuning.playerRimScale,
+        BALL_WIDTH_SEGMENTS,
+        BALL_HEIGHT_SEGMENTS,
+      ),
+      this.materials.playerRimMaterial(),
+    );
+    rim.name = "rim";
+    group.add(rim);
+
     const eyeWrapper = new Group();
     eyeWrapper.name = "eyeWrapper";
     group.add(eyeWrapper);
 
-    const eyeGeometry = new SphereGeometry(
-      r * EYE_RADIUS_RATIO,
-      EYE_WIDTH_SEGMENTS,
-      EYE_HEIGHT_SEGMENTS,
-    );
-    eyeGeometry.scale(1, 1, EYE_FLATTEN_Z);
-    const eye = new Mesh(eyeGeometry, this.materials.material("eye"));
-    eye.name = "eye";
-    eye.position.set(0, r * EYE_UP_RATIO, r * EYE_FORWARD_RATIO);
-    eyeWrapper.add(eye);
+    const eyeRadius = r * EYE_RADIUS_RATIO;
+    const pupilRadius = eyeRadius * PUPIL_RADIUS_RATIO;
+    const eyeWhite = this.materials.material("eyeWhite");
+    const pupilMaterial = this.materials.material("pupil");
+    for (const side of [-1, 1]) {
+      const socket = new Group();
+      socket.name = "eye";
+      socket.position.set(
+        side * r * EYE_SIDE_RATIO,
+        r * EYE_UP_RATIO,
+        r * EYE_FORWARD_RATIO,
+      );
+      eyeWrapper.add(socket);
+
+      const whiteGeometry = new SphereGeometry(
+        eyeRadius,
+        EYE_WIDTH_SEGMENTS,
+        EYE_HEIGHT_SEGMENTS,
+      );
+      whiteGeometry.scale(1, 1, EYE_FLATTEN_Z);
+      const white = new Mesh(whiteGeometry, eyeWhite);
+      white.name = "eyeWhite";
+      socket.add(white);
+
+      const pupil = new Mesh(
+        new SphereGeometry(
+          pupilRadius,
+          EYE_WIDTH_SEGMENTS,
+          EYE_HEIGHT_SEGMENTS,
+        ),
+        pupilMaterial,
+      );
+      pupil.name = "pupil";
+      pupil.position.set(0, eyeRadius * PUPIL_UP, eyeRadius * PUPIL_FORWARD);
+      socket.add(pupil);
+    }
 
     return group;
   }

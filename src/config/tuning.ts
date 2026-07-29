@@ -97,6 +97,21 @@ export const tuning = {
   fillLightIntensity: 0.5,
   showcaseLightMult: 1.15,
 
+  playerRimOpacity: 0.5,
+  playerRimScale: 1.06,
+  veinEmissiveIdle: 0.35,
+  veinEmissiveMax: 1.5,
+  veinSpeedFull: 7,
+  eyeSquintSec: 0.5,
+  eyePitchMaxRad: 0.32,
+  eyePitchVyFull: 9,
+
+  trailPointCount: 44,
+  trailMinSpeed: 4.5,
+  trailSpacing: 0.16,
+  trailLifeSec: 0.55,
+  trailSize: 0.3,
+
   trimEmissiveIntensity: 0.85,
   runeEmissiveIntensity: 0.6,
   terrainTileJitter: 0.09,

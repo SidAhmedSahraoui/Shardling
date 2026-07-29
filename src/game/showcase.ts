@@ -28,6 +28,7 @@ const MOTE_SCATTER_RAD = 2.4;
 const MOTE_DRIFT_AMPLITUDE = 0.25;
 const MOTE_DRIFT_PERIOD_SEC = 6;
 
+const SHOWCASE_WORLD = 4;
 const ORBIT_PERIOD_SEC = 45;
 const ORBIT_RADIUS = 10.5;
 const ORBIT_HEIGHT = 5.5;
@@ -54,7 +55,7 @@ export function buildShowcase(
     return obj;
   };
 
-  const theme = worldTheme(1);
+  const theme = worldTheme(SHOWCASE_WORLD);
   scene.fog = new FogExp2(theme.fog, tuning.fogDensity);
 
   const hemi = new HemisphereLight(
@@ -75,11 +76,11 @@ export function buildShowcase(
   scene.add(hemi, fill, dir);
   roots.push(hemi, fill, dir);
 
-  add(meshes.skyDome(80, 1), 0, 0, 0);
-  materials.releaseSkiesExcept(1);
-  materials.setDustTheme(1);
-  const islands = add(meshes.distantIslands(1), 0, 0, 0);
-  const midIslands = add(meshes.midIslands(1), 0, 0, 0);
+  add(meshes.skyDome(80, SHOWCASE_WORLD), 0, 0, 0);
+  materials.releaseSkiesExcept(SHOWCASE_WORLD);
+  materials.setDustTheme(SHOWCASE_WORLD);
+  const islands = add(meshes.distantIslands(SHOWCASE_WORLD), 0, 0, 0);
+  const midIslands = add(meshes.midIslands(SHOWCASE_WORLD), 0, 0, 0);
 
   add(meshes.platform(14, 1, 10), 0, -0.5, 0);
   add(meshes.ramp(3, 1.5, 2.5, "+x"), -4.5, 0.75, -2.5);
@@ -118,7 +119,7 @@ export function buildShowcase(
   }
 
   for (const root of roots) {
-    meshes.applyWorldTheme(root, 1);
+    meshes.applyWorldTheme(root, SHOWCASE_WORLD);
   }
 
   let elapsed = 0;

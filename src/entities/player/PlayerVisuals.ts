@@ -1,9 +1,17 @@
-import type { Object3D, Scene, Sprite, SpriteMaterial } from "three";
-import { Vector3 } from "three";
+import type {
+  MeshStandardMaterial,
+  Object3D,
+  Scene,
+  Sprite,
+  SpriteMaterial,
+} from "three";
+import { Mesh, Vector3 } from "three";
 
 import { tuning } from "../../config/tuning";
 import type { EventBus } from "../../core/EventBus";
+import type { MaterialFactory } from "../../gfx/MaterialFactory";
 import type { MeshFactory } from "../../gfx/MeshFactory";
+import { TrailRibbon } from "../../gfx/TrailRibbon";
 
 const BREATHE_AMPLITUDE = 0.015;
 const BREATHE_PERIOD_SEC = 2.2;
@@ -12,6 +20,7 @@ const BLINK_MIN_DELAY_SEC = 3;
 const BLINK_MAX_DELAY_SEC = 5;
 const BLINK_DURATION_SEC = 0.11;
 const BLINK_MIN_SCALE_Y = 0.12;
+const SQUINT_MIN_SCALE_Y = 0.35;
 const JUMP_STRETCH_X = 0.88;
 const JUMP_STRETCH_Y = 1.14;
 const JUMP_STRETCH_Z = 0.88;
@@ -84,6 +93,7 @@ export interface PlayerVisualsOptions {
   eyeWrapper: Object3D;
   scene: Scene;
   meshes: MeshFactory;
+  materials: MaterialFactory;
   bus: EventBus;
   reduceMotion: () => boolean;
   noJuice: () => boolean;
@@ -94,7 +104,10 @@ export interface PlayerVisualsOptions {
 export class PlayerVisuals {
   private readonly target: Object3D;
   private readonly eyeWrapper: Object3D;
-  private readonly eye: Object3D;
+  private readonly eyes: Object3D[];
+  private readonly veinMaterial: MeshStandardMaterial;
+  private readonly trail: TrailRibbon;
+  private readonly reduceMotion: () => boolean;
   private readonly scene: Scene;
   private readonly noJuice: () => boolean;
   private readonly getVelocity: PlayerVisualsOptions["getVelocity"];
@@ -123,6 +136,7 @@ export class PlayerVisuals {
   private nextBlinkDelay: number;
 
   private eyeTargetYaw = 0;
+  private squintAge = Infinity;
 
   private lcgState = LCG_SEED;
 
@@ -136,12 +150,28 @@ export class PlayerVisuals {
     this.getVelocity = opts.getVelocity;
     this.getGrounded = opts.getGrounded;
 
-    const eye = opts.eyeWrapper.getObjectByName("eye");
-    if (!eye) {
-      throw new Error("PlayerVisuals: eyeWrapper has no 'eye' child");
+    this.reduceMotion = opts.reduceMotion;
+    this.eyes = [];
+    opts.eyeWrapper.traverse((obj) => {
+      if (obj.name === "eye") {
+        this.eyes.push(obj);
+      }
+    });
+    if (this.eyes.length === 0) {
+      throw new Error("PlayerVisuals: eyeWrapper has no 'eye' children");
     }
-    this.eye = eye;
     this.eyeTargetYaw = this.eyeWrapper.rotation.y;
+
+    const body = opts.target.getObjectByName("body");
+    if (!(body instanceof Mesh)) {
+      throw new Error("PlayerVisuals: player root has no 'body' mesh");
+    }
+    this.veinMaterial = body.material as MeshStandardMaterial;
+
+    this.trail = new TrailRibbon({
+      scene: opts.scene,
+      materials: opts.materials,
+    });
 
     this.dust = [];
     for (let i = 0; i < DUST_POOL_SIZE; i += 1) {
@@ -169,6 +199,11 @@ export class PlayerVisuals {
       opts.bus.on("player:landed", (e) => {
         this.onLanded(e.impact);
       }),
+      opts.bus.on("shard:collected", () => {
+        if (!this.noJuice()) {
+          this.squintAge = 0;
+        }
+      }),
     ];
   }
 
@@ -189,6 +224,28 @@ export class PlayerVisuals {
       this.neutralizeJuice();
       return;
     }
+
+    const pitchTarget =
+      clamp01(Math.abs(v.y) / tuning.eyePitchVyFull) *
+      tuning.eyePitchMaxRad *
+      (v.y >= 0 ? -1 : 1);
+    this.eyeWrapper.rotation.x +=
+      (pitchTarget - this.eyeWrapper.rotation.x) * yawK;
+
+    const veinT = clamp01(speedXZ / tuning.veinSpeedFull);
+    this.veinMaterial.emissiveIntensity =
+      tuning.veinEmissiveIdle +
+      (tuning.veinEmissiveMax - tuning.veinEmissiveIdle) * veinT;
+
+    this.target.getWorldPosition(this.worldPos);
+    this.trail.setVisible(!this.reduceMotion());
+    this.trail.update(
+      frameDtSec,
+      this.worldPos.x,
+      this.worldPos.y,
+      this.worldPos.z,
+      speedXZ,
+    );
 
     this.breatheClock += frameDtSec;
     if (this.breatheClock >= BREATHE_PERIOD_SEC) {
@@ -232,8 +289,11 @@ export class PlayerVisuals {
     for (const d of this.dust) {
       this.scene.remove(d.sprite);
     }
+    this.trail.destroy();
+    this.veinMaterial.emissiveIntensity = tuning.veinEmissiveIdle;
     this.target.scale.set(1, 1, 1);
-    this.eye.scale.y = 1;
+    this.setEyeScaleY(1);
+    this.eyeWrapper.rotation.x = 0;
   }
 
   private onJumped(): void {
@@ -272,27 +332,46 @@ export class PlayerVisuals {
   }
 
   private updateBlink(frameDtSec: number): void {
+    let scaleY = 1;
+
+    if (this.squintAge < tuning.eyeSquintSec) {
+      this.squintAge += frameDtSec;
+      const s = clamp01(this.squintAge / tuning.eyeSquintSec);
+      scaleY = SQUINT_MIN_SCALE_Y + (1 - SQUINT_MIN_SCALE_Y) * cubicOut(s);
+    }
+
     if (!this.blinking) {
       this.blinkClock += frameDtSec;
-      if (this.blinkClock < this.nextBlinkDelay) {
-        return;
+      if (this.blinkClock >= this.nextBlinkDelay) {
+        this.blinking = true;
+        this.blinkAge = 0;
       }
-      this.blinking = true;
-      this.blinkAge = 0;
     }
-    this.blinkAge += frameDtSec;
-    const u = this.blinkAge / BLINK_DURATION_SEC;
-    if (u >= 1) {
-      this.blinking = false;
-      this.blinkClock = 0;
-      this.nextBlinkDelay = this.randRange(
-        BLINK_MIN_DELAY_SEC,
-        BLINK_MAX_DELAY_SEC,
-      );
-      this.eye.scale.y = 1;
-      return;
+    if (this.blinking) {
+      this.blinkAge += frameDtSec;
+      const u = this.blinkAge / BLINK_DURATION_SEC;
+      if (u >= 1) {
+        this.blinking = false;
+        this.blinkClock = 0;
+        this.nextBlinkDelay = this.randRange(
+          BLINK_MIN_DELAY_SEC,
+          BLINK_MAX_DELAY_SEC,
+        );
+      } else {
+        scaleY = Math.min(
+          scaleY,
+          1 - (1 - BLINK_MIN_SCALE_Y) * Math.sin(Math.PI * u),
+        );
+      }
     }
-    this.eye.scale.y = 1 - (1 - BLINK_MIN_SCALE_Y) * Math.sin(Math.PI * u);
+
+    this.setEyeScaleY(scaleY);
+  }
+
+  private setEyeScaleY(scaleY: number): void {
+    for (const eye of this.eyes) {
+      eye.scale.y = scaleY;
+    }
   }
 
   private spawnDust(impact: number): void {
@@ -387,8 +466,12 @@ export class PlayerVisuals {
     this.blinking = false;
     this.blinkClock = 0;
     this.breatheBlend = 0;
+    this.squintAge = Infinity;
+    this.trail.setVisible(false);
+    this.veinMaterial.emissiveIntensity = tuning.veinEmissiveIdle;
     this.target.scale.set(1, 1, 1);
-    this.eye.scale.y = 1;
+    this.setEyeScaleY(1);
+    this.eyeWrapper.rotation.x = 0;
   }
 
   private rand(): number {

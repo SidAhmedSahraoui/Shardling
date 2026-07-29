@@ -21,6 +21,8 @@ export type StandardMaterialKey =
   | "terrainTop"
   | "trim"
   | "player"
+  | "eyeWhite"
+  | "pupil"
   | "eye"
   | "shard"
   | "hazard"
@@ -29,7 +31,7 @@ export type StandardMaterialKey =
   | "portalStone"
   | "bouncer";
 
-type TextureKey = "grid" | "softCircle" | "ring";
+type TextureKey = "grid" | "softCircle" | "ring" | "vein";
 
 export type SpriteKind =
   "mote" | "ring" | "dust" | "spark" | "ember" | "portalMote";
@@ -47,6 +49,7 @@ const PLAYER_METALNESS = 0.05;
 const GLOW_ROUGHNESS = 0.45;
 const GLOW_METALNESS = 0.05;
 const EYE_EMISSIVE_INTENSITY = 2.2;
+const EYE_WHITE_EMISSIVE_INTENSITY = 1.15;
 const SHARD_EMISSIVE_INTENSITY = 1.6;
 const HAZARD_EMISSIVE_INTENSITY = 1.8;
 const PORTAL_DORMANT_EMISSIVE_INTENSITY = 0.25;
@@ -87,6 +90,13 @@ const RUNE_SEGMENTS_MIN = 3;
 const RUNE_SEGMENTS_MAX = 5;
 const RUNE_MARGIN_RATIO = 0.24;
 const STONE_SEED_BASE = 0x7f4a7c15;
+
+const VEIN_TEXTURE_SIZE = 256;
+const VEIN_COUNT = 9;
+const VEIN_SEGMENTS = 5;
+const VEIN_WIDTH_PX = 3.2;
+const VEIN_BRANCH_CHANCE = 0.45;
+const VEIN_SEED = 0x1f83d9ab;
 
 const STRATA_TEXTURE_SIZE = 256;
 const STRATA_BANDS = 5;
@@ -363,6 +373,65 @@ function createStoneTopTextures(
   };
 }
 
+function createVeinTexture(): CanvasTexture {
+  const size = VEIN_TEXTURE_SIZE;
+  const { canvas, ctx } = createCanvas(size, size);
+  ctx.fillStyle = "rgb(0, 0, 0)";
+  ctx.fillRect(0, 0, size, size);
+  const rand = createLcg(VEIN_SEED);
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  const stroke = (
+    x0: number,
+    y0: number,
+    angle0: number,
+    len: number,
+    width: number,
+    depth: number,
+  ): void => {
+    let x = x0;
+    let y = y0;
+    let angle = angle0;
+    ctx.strokeStyle = `rgba(255, 255, 255, ${(0.85 - depth * 0.25).toFixed(3)})`;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    for (let s = 0; s < VEIN_SEGMENTS; s += 1) {
+      angle += (rand() - 0.5) * 1.1;
+      x += Math.cos(angle) * len;
+      y += Math.sin(angle) * len;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    if (depth < 1 && rand() < VEIN_BRANCH_CHANCE) {
+      stroke(
+        x,
+        y,
+        angle + (rand() - 0.5) * 1.6,
+        len * 0.6,
+        width * 0.6,
+        depth + 1,
+      );
+    }
+  };
+
+  for (let i = 0; i < VEIN_COUNT; i += 1) {
+    stroke(
+      rand() * size,
+      rand() * size,
+      rand() * Math.PI * 2,
+      size / (VEIN_SEGMENTS * 2.2),
+      VEIN_WIDTH_PX,
+      0,
+    );
+  }
+
+  const texture = new CanvasTexture(canvas);
+  texture.colorSpace = SRGBColorSpace;
+  return texture;
+}
+
 function createStrataTexture(theme: WorldTheme, world: number): CanvasTexture {
   const size = STRATA_TEXTURE_SIZE;
   const { canvas, ctx } = createCanvas(size, size);
@@ -486,6 +555,8 @@ export class MaterialFactory {
   >();
   private readonly islandByWorld = new Map<number, MeshBasicMaterial>();
   private motePoints: PointsMaterial | undefined;
+  private playerRim: MeshBasicMaterial | undefined;
+  private trailPoints: PointsMaterial | undefined;
 
   material(key: StandardMaterialKey): MeshStandardMaterial {
     let material = this.materials.get(key);
@@ -557,6 +628,32 @@ export class MaterialFactory {
       this.spriteMaterials.set(kind, material);
     }
     return material;
+  }
+
+  playerRimMaterial(): MeshBasicMaterial {
+    this.playerRim ??= new MeshBasicMaterial({
+      color: palette.eye,
+      side: BackSide,
+      transparent: true,
+      opacity: tuning.playerRimOpacity,
+      blending: AdditiveBlending,
+      depthWrite: false,
+      fog: false,
+    });
+    return this.playerRim;
+  }
+
+  trailPointsMaterial(): PointsMaterial {
+    this.trailPoints ??= new PointsMaterial({
+      map: this.softCircleTexture(),
+      size: tuning.trailSize,
+      sizeAttenuation: true,
+      transparent: true,
+      vertexColors: true,
+      blending: AdditiveBlending,
+      depthWrite: false,
+    });
+    return this.trailPoints;
   }
 
   setDustTheme(world: number): void {
@@ -677,6 +774,10 @@ export class MaterialFactory {
     this.islandByWorld.clear();
     this.motePoints?.dispose();
     this.motePoints = undefined;
+    this.playerRim?.dispose();
+    this.playerRim = undefined;
+    this.trailPoints?.dispose();
+    this.trailPoints = undefined;
   }
 
   private texture(key: TextureKey): CanvasTexture {
@@ -691,6 +792,9 @@ export class MaterialFactory {
           break;
         case "ring":
           texture = createRingTexture();
+          break;
+        case "vein":
+          texture = createVeinTexture();
           break;
       }
       this.textures.set(key, texture);
@@ -721,6 +825,17 @@ export class MaterialFactory {
       case "player":
         return new MeshStandardMaterial({
           color: palette.player,
+          emissive: palette.playerVein,
+          emissiveMap: this.texture("vein"),
+          emissiveIntensity: tuning.veinEmissiveIdle,
+          roughness: PLAYER_ROUGHNESS,
+          metalness: PLAYER_METALNESS,
+        });
+      case "eyeWhite":
+        return glowMaterial(palette.eyeWhite, EYE_WHITE_EMISSIVE_INTENSITY);
+      case "pupil":
+        return new MeshStandardMaterial({
+          color: palette.pupil,
           roughness: PLAYER_ROUGHNESS,
           metalness: PLAYER_METALNESS,
         });
