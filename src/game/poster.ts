@@ -1,11 +1,5 @@
-import type { Mesh, Object3D } from "three";
-import {
-  DirectionalLight,
-  FogExp2,
-  HemisphereLight,
-  InstancedMesh,
-  Vector3,
-} from "three";
+import type { InstancedMesh, Mesh, Object3D } from "three";
+import { DirectionalLight, FogExp2, HemisphereLight, Vector3 } from "three";
 
 import { lighting, worldTheme } from "../config/palette";
 import { tuning } from "../config/tuning";
@@ -25,21 +19,31 @@ export type PosterFraming = "wide" | "portrait" | "square";
 
 export interface Framing {
   camera: [number, number, number];
-  target: [number, number, number];
   fov: number;
+  heroNdc: [number, number];
 }
 
-const POSTER_WORLD = 4;
+const DEFAULT_POSTER_WORLD = 4;
+
+export function posterWorld(value: string | null): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 1 && parsed <= 4
+    ? Math.round(parsed)
+    : DEFAULT_POSTER_WORLD;
+}
 
 const HERO = new Vector3(4.2, 3.9, 5.8);
 const HERO_STRETCH = 1.16;
 const HERO_BODY_SPIN = 2.15;
 
 const FRAMINGS: Record<PosterFraming, Framing> = {
-  wide: { camera: [10.2, 5.9, 10.4], target: [0.4, 2.5, -0.8], fov: 40 },
-  portrait: { camera: [9.4, 5.2, 10.2], target: [1.2, 2.2, -0.6], fov: 46 },
-  square: { camera: [9.8, 5.6, 10.3], target: [0.9, 2.4, -0.7], fov: 43 },
+  wide: { camera: [8.4, 3.6, 10.2], fov: 50, heroNdc: [-0.32, 0.34] },
+  portrait: { camera: [7.6, 3.2, 9.6], fov: 52, heroNdc: [-0.12, 0.44] },
+  square: { camera: [8.0, 3.4, 9.9], fov: 50, heroNdc: [-0.24, 0.34] },
 };
+
+const WORLD_UP = new Vector3(0, 1, 0);
+const AIM_ITERATIONS = 4;
 
 const TRAIL_ORIGIN = new Vector3(-3.8, 0.5, 1.4);
 const TRAIL_CONTROL = new Vector3(0.2, 5.2, 4.4);
@@ -47,9 +51,9 @@ const TRAIL_STEPS = tuning.trailPointCount;
 const TRAIL_STEP_DT = 0.0075;
 
 const SHARD_SPOTS: readonly (readonly [number, number, number])[] = [
-  [-6.0, 0.6, 3.6],
-  [-2.4, 1.5, 2.0],
-  [3.4, 2.6, -1.6],
+  [-4.8, 0.85, 3.4],
+  [0.6, 1.9, 1.6],
+  [4.6, 2.9, -1.8],
 ];
 const SHARD_HALO_SIZE = 1.0;
 
@@ -59,10 +63,10 @@ const FOREGROUND_CRYSTALS: readonly (readonly [
   number,
   number,
 ])[] = [
-  [-5.9, -1.05, 4.2, 1.15],
-  [-5.2, -1.2, 5.1, 0.7],
-  [5.6, -1.0, 3.4, 0.95],
-  [7.6, 0.6, -5.2, 0.6],
+  [-5.6, -1.05, 3.9, 1.1],
+  [-4.9, -1.2, 4.7, 0.7],
+  [4.9, -1.0, 3.2, 0.9],
+  [6.4, 0.5, -4.0, 0.55],
 ];
 
 const MOTE_SPOTS: readonly (readonly [number, number, number, number])[] = [
@@ -95,6 +99,7 @@ export function buildPoster(
   app: App,
   materials: MaterialFactory,
   framing: PosterFraming,
+  POSTER_WORLD: number = DEFAULT_POSTER_WORLD,
 ): PosterScene {
   const { scene, camera } = app;
   const meshes = new MeshFactory(materials);
@@ -145,19 +150,19 @@ export function buildPoster(
   add(meshes.midIslands(POSTER_WORLD), 0, 0, 0);
   add(meshes.cloudSea(POSTER_WORLD), 0, 0, 0);
 
-  add(meshes.platform(5, 1, 4), -8.5, -2.1, 5.0);
-  add(meshes.platform(9.5, 1, 7), -0.6, -0.5, 0.8);
-  add(meshes.platform(4.5, 1, 3.5), 5.4, 1.1, -3.4);
-  add(meshes.platform(6, 1, 5), 10.2, 2.7, -8.4);
-  add(meshes.ramp(2.6, 1.5, 2.2, "+x"), 2.4, 0.75, -2.0);
+  add(meshes.platform(4.6, 1, 3.6), -6.4, -1.9, 3.8);
+  add(meshes.platform(9, 1, 6.6), -0.8, -0.5, 0.9);
+  add(meshes.platform(4.2, 1, 3.2), 5.0, 1.0, -2.6);
+  add(meshes.platform(5.4, 1, 4.4), 8.4, 2.4, -6.2);
+  add(meshes.ramp(2.4, 1.4, 2.0, "+x"), 2.3, 0.7, -1.6);
 
-  const portal = add(meshes.portal(), 10.2, 3.2, -8.4);
+  const portal = add(meshes.portal(), 8.4, 2.9, -6.2);
   portal.rotation.y = -Math.PI * 0.3;
   setPortalActive(portal, true, materials);
 
-  add(meshes.bouncer(), -8.5, -1.6, 5.0);
+  add(meshes.bouncer(), -6.4, -1.4, 3.8);
   add(meshes.spikeStrip(3.6, 1.2), -1.6, 0, -1.4);
-  const blade = add(meshes.blade(1), 7.9, 2.5, -6.0);
+  const blade = add(meshes.blade(1), 5.3, 2.6, -4.8);
   blade.rotation.x = Math.PI / 2;
   blade.rotation.z = 0.8;
 
@@ -215,17 +220,34 @@ export function buildPoster(
 
   const view: Framing = {
     camera: [...FRAMINGS[framing].camera],
-    target: [...FRAMINGS[framing].target],
     fov: FRAMINGS[framing].fov,
+    heroNdc: [...FRAMINGS[framing].heroNdc],
   };
   const target = new Vector3();
+  const forward = new Vector3();
+  const right = new Vector3();
+  const up = new Vector3();
 
   const placeCamera = (): void => {
     camera.fov = view.fov;
     camera.position.set(view.camera[0], view.camera[1], view.camera[2]);
-    target.set(view.target[0], view.target[1], view.target[2]);
-    camera.lookAt(target);
     camera.updateProjectionMatrix();
+
+    const distance = camera.position.distanceTo(hero.position);
+    const halfHeight = distance * Math.tan((view.fov * Math.PI) / 360);
+    const halfWidth = halfHeight * camera.aspect;
+
+    forward.subVectors(hero.position, camera.position).normalize();
+    for (let i = 0; i < AIM_ITERATIONS; i += 1) {
+      right.crossVectors(forward, WORLD_UP).normalize();
+      up.crossVectors(right, forward).normalize();
+      target
+        .copy(hero.position)
+        .addScaledVector(right, -view.heroNdc[0] * halfWidth)
+        .addScaledVector(up, -view.heroNdc[1] * halfHeight);
+      forward.subVectors(target, camera.position).normalize();
+    }
+    camera.lookAt(target);
   };
 
   const aimEyes = (): void => {
@@ -274,8 +296,8 @@ export function buildPoster(
 
     setCamera(next: Framing): void {
       view.camera = [...next.camera];
-      view.target = [...next.target];
       view.fov = next.fov;
+      view.heroNdc = [...next.heroNdc];
       placeCamera();
       aimEyes();
     },

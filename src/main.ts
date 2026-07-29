@@ -393,7 +393,22 @@ const loop = new GameLoop({
     debugTools?.update(frameDt);
   },
 });
-startShowcase();
+const posterParam = new URLSearchParams(window.location.search).get("poster");
+let poster: PosterScene | null = null;
+if (posterParam === null) {
+  startShowcase();
+} else {
+  const { buildPoster, posterFraming, posterWorld } =
+    await import("./game/poster");
+  poster = buildPoster(
+    app,
+    materials,
+    posterFraming(posterParam),
+    posterWorld(new URLSearchParams(window.location.search).get("world")),
+  );
+  active = poster;
+  window.__poster = poster;
+}
 loop.start();
 
 const screens = new ScreenManager(container, {
@@ -472,16 +487,8 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-const posterParam = new URLSearchParams(window.location.search).get("poster");
-if (posterParam === null) {
+if (poster === null) {
   showMenu();
-} else {
-  showcase?.dispose();
-  showcase = null;
-  const { buildPoster, posterFraming } = await import("./game/poster");
-  const poster = buildPoster(app, materials, posterFraming(posterParam));
-  active = poster;
-  window.__poster = poster;
 }
 
 window.__shardling = {

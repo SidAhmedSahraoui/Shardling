@@ -113,7 +113,7 @@ export const worldThemes: readonly [
     star: 0xffe6cf,
     island: 0x6b4260,
     crystal: 0x8fd8ff,
-    cloud: 0xe8a48f,
+    cloud: 0xf2b79c,
     sunTint: 0xffdfc9,
     lightPoolStrength: 0.5,
   },

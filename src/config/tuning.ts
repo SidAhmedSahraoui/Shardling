@@ -138,7 +138,7 @@ export const tuning = {
   cloudSeaLayerCount: 3,
   cloudSeaRadius: 120,
   cloudSeaLayerGap: 6,
-  cloudSeaOpacity: 0.32,
+  cloudSeaOpacity: 0.42,
   cloudSeaDriftRadPerSec: 0.008,
 
   ruinPillarPerIsland: 3,

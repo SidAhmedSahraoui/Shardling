@@ -493,7 +493,8 @@ function createCloudTexture(): CanvasTexture {
     const dist = Math.sqrt(rand()) * CLOUD_PUFF_SPREAD * size;
     const cx = half + Math.cos(angle) * dist;
     const cy = half + Math.sin(angle) * dist * CLOUD_PUFF_SQUASH;
-    const radius = (CLOUD_PUFF_MIN_RADIUS + rand() * CLOUD_PUFF_RANGE_RADIUS) * size;
+    const radius =
+      (CLOUD_PUFF_MIN_RADIUS + rand() * CLOUD_PUFF_RANGE_RADIUS) * size;
     const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
     gradient.addColorStop(0, mask(1, CLOUD_PUFF_ALPHA));
     gradient.addColorStop(1, mask(1, 0));
@@ -535,7 +536,8 @@ function createSwirlTexture(): CanvasTexture {
       const theta = armOffset + u * SWIRL_TURNS * Math.PI * 2;
       const cx = half + Math.cos(theta) * r;
       const cy = half + Math.sin(theta) * r;
-      const dot = SWIRL_DOT_MIN_PX + (1 - u) * (SWIRL_DOT_MAX_PX - SWIRL_DOT_MIN_PX);
+      const dot =
+        SWIRL_DOT_MIN_PX + (1 - u) * (SWIRL_DOT_MAX_PX - SWIRL_DOT_MIN_PX);
       const alpha = (1 - u) * (1 - u);
       const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, dot);
       gradient.addColorStop(0, mask(1, alpha));
