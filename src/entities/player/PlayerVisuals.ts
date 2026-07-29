@@ -218,8 +218,7 @@ export class PlayerVisuals {
     const camYaw = this.getCameraYaw();
     if (speedXZ > EYE_TRACK_MIN_SPEED) {
       const moveYaw = Math.atan2(v.x, v.z);
-      const lean =
-        clamp01(speedXZ / tuning.maxSpeedXZ) * EYE_MOVE_LEAN_MAX;
+      const lean = clamp01(speedXZ / tuning.maxSpeedXZ) * EYE_MOVE_LEAN_MAX;
       this.eyeTargetYaw = camYaw + wrapAngle(moveYaw - camYaw) * lean;
     } else {
       this.eyeTargetYaw = camYaw;
